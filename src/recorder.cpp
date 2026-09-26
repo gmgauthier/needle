@@ -239,8 +239,9 @@ bool Recorder::open_wav(const std::string& path)
   dirty_ = false;
   position_ns_ = 0;
   duration_ns_ = 0;
+  probe_duration();
   set_state(RecState::stopped);
-  signal_position_.emit(0, 0);
+  signal_position_.emit(position_ns_, duration_ns_);
   return true;
 }
 
@@ -293,29 +294,84 @@ bool Recorder::play()
     return false;
   if (state_ == RecState::playing)
     return true;
+  const gint64 start = position_ns_;
   stop();
+  position_ns_ = start;
   const char* desc = "filesrc name=fs ! wavparse ! audioconvert ! audioresample ! autoaudiosink";
   if (!start_pipeline(desc, "fs", path_))
     return false;
   set_state(RecState::playing);
+  if (start > 0 && pipeline_) {
+    gst_element_get_state(pipeline_, nullptr, nullptr, 400 * GST_MSECOND);
+    gst_element_seek_simple(pipeline_, GST_FORMAT_TIME,
+                            static_cast<GstSeekFlags>(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE),
+                            start);
+  }
   return true;
 }
 
 bool Recorder::stop()
 {
   const RecState was = state_;
+  if (was == RecState::playing)
+    query_times();
   tear_pipeline();
   if (was == RecState::recording) {
     has_tape_ = Glib::file_test(path_, Glib::FILE_TEST_IS_REGULAR);
+    probe_duration();
+    position_ns_ = 0;
     set_state(has_tape_ ? RecState::stopped : RecState::empty);
   } else if (has_tape_) {
-    position_ns_ = 0;
     set_state(RecState::stopped);
   } else {
     set_state(RecState::empty);
   }
   signal_position_.emit(position_ns_, duration_ns_);
   return true;
+}
+
+bool Recorder::seek(gint64 ns)
+{
+  if (!has_tape_)
+    return false;
+  if (ns < 0)
+    ns = 0;
+  if (duration_ns_ > 0 && ns > duration_ns_)
+    ns = duration_ns_;
+  position_ns_ = ns;
+  if (state_ == RecState::playing && pipeline_) {
+    gst_element_seek_simple(pipeline_, GST_FORMAT_TIME,
+                            static_cast<GstSeekFlags>(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE),
+                            ns);
+  }
+  signal_position_.emit(position_ns_, duration_ns_);
+  return true;
+}
+
+void Recorder::probe_duration()
+{
+  if (path_.empty() || !Glib::file_test(path_, Glib::FILE_TEST_IS_REGULAR))
+    return;
+  GError* err = nullptr;
+  GstElement* p = gst_parse_launch("filesrc name=fs ! wavparse ! fakesink", &err);
+  if (err) {
+    g_error_free(err);
+    err = nullptr;
+  }
+  if (!p)
+    return;
+  GstElement* fs = gst_bin_get_by_name(GST_BIN(p), "fs");
+  if (fs) {
+    g_object_set(fs, "location", path_.c_str(), nullptr);
+    gst_object_unref(fs);
+  }
+  gst_element_set_state(p, GST_STATE_PAUSED);
+  gst_element_get_state(p, nullptr, nullptr, 500 * GST_MSECOND);
+  gint64 dur = 0;
+  if (gst_element_query_duration(p, GST_FORMAT_TIME, &dur) && dur > 0)
+    duration_ns_ = dur;
+  gst_element_set_state(p, GST_STATE_NULL);
+  gst_object_unref(p);
 }
 
 }  // namespace needle

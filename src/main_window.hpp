@@ -29,6 +29,10 @@ class MainWindow : public Gtk::Window {
   void on_not_yet(const Glib::ustring& feature);
   void on_seek_start();
   void on_seek_end();
+  bool on_slider_press(GdkEventButton* event);
+  bool on_slider_release(GdkEventButton* event);
+  void remember_folder(const std::string& path);
+  void apply_folder(Gtk::FileChooser& dlg);
   void on_record();
   void on_stop();
   void on_play();
@@ -54,6 +58,7 @@ class MainWindow : public Gtk::Window {
   Gtk::Box times_{Gtk::ORIENTATION_HORIZONTAL, 12};
   Gtk::Label pos_lab_{"Position: 0.00 sec"};
   Gtk::Label len_lab_{"Length: 0.00 sec"};
+  Gtk::Scale slider_{Gtk::ORIENTATION_HORIZONTAL};
   Gtk::Box transport_{Gtk::ORIENTATION_HORIZONTAL, 6};
   Gtk::Button btn_start_{"|<"};
   Gtk::Button btn_end_{">|"};
@@ -69,6 +74,7 @@ class MainWindow : public Gtk::Window {
   Settings settings_;
   std::vector<AudioDevice> devices_;
   std::string save_path_;
+  bool slider_drag_ = false;
 };
 
 }  // namespace needle

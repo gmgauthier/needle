@@ -32,6 +32,11 @@ void Settings::load()
       audio_device = kf.get_string("audio", "device");
   } catch (const Glib::Error&) {
   }
+  try {
+    if (kf.has_key("files", "last_folder"))
+      last_folder = kf.get_string("files", "last_folder");
+  } catch (const Glib::Error&) {
+  }
 }
 
 void Settings::save() const
@@ -42,6 +47,7 @@ void Settings::save() const
   } catch (const Glib::Error&) {
   }
   kf.set_string("audio", "device", audio_device);
+  kf.set_string("files", "last_folder", last_folder);
   try {
     kf.save_to_file(config_path());
   } catch (const Glib::Error&) {

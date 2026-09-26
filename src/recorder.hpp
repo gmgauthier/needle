@@ -58,6 +58,7 @@ class Recorder {
   bool record();
   bool play();
   bool stop();
+  bool seek(gint64 ns);
 
   sigc::signal<void, RecState>& signal_state()
   {
@@ -84,6 +85,7 @@ class Recorder {
   void set_state(RecState s);
   void query_times();
   void pull_wave();
+  void probe_duration();
 
   AudioDevice input_;
   GstElement* pipeline_ = nullptr;

@@ -69,7 +69,7 @@ Record / Stop / Play a WAV from `autoaudiosrc`. Live level into the waveform. Ne
 
 ### M2 — Chrome polish
 
-Seek on the slider, last-folder in `~/.config/needle/needle.ini`, README **Vended by Grok Build**, screenshot.
+Seek on the slider, last-folder in `~/.config/needle/needle.ini`, README **Vended by Grok Build**, screenshot. **Done in this branch.**
 
 ### M3 — Package
 

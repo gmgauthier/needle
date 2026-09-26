@@ -2,6 +2,8 @@
 
 **Vended by Grok Build**
 
+![Needle on LCOS](brand/screenshot.png)
+
 A **Sound Recorder** for The Lunduke Computer Operating System (LCOS). The window is Windows 95 Sound Recorder, not GNOME.
 
 Binary: `needle`. Unlicense.
@@ -10,7 +12,7 @@ LCOS itself: [https://github.com/BryanLunduke/LCOS](https://github.com/BryanLund
 
 ## Status
 
-**v0.1.0 (M0–M1).** Record, stop, and play a WAV; microphone combo; green level trace. See [INSTALL.md](INSTALL.md) and [DEVELOPMENT.md](DEVELOPMENT.md).
+**v0.1.0.** Record, stop, and play a WAV; microphone combo; green level trace. M2 in this branch: seek slider, last folder. See [INSTALL.md](INSTALL.md) and [DEVELOPMENT.md](DEVELOPMENT.md).
 
 | Doc | What |
 |---|---|

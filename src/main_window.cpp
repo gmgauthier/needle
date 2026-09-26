@@ -32,6 +32,17 @@ MainWindow::MainWindow()
   times_.pack_start(len_lab_, Gtk::PACK_EXPAND_WIDGET);
   well_.pack_start(times_, Gtk::PACK_SHRINK);
 
+  slider_.set_range(0, 1);
+  slider_.set_increments(0.05, 1);
+  slider_.set_draw_value(false);
+  slider_.set_sensitive(false);
+  slider_.add_events(Gdk::BUTTON_PRESS_MASK | Gdk::BUTTON_RELEASE_MASK);
+  slider_.signal_button_press_event().connect(sigc::mem_fun(*this, &MainWindow::on_slider_press),
+                                              false);
+  slider_.signal_button_release_event().connect(
+      sigc::mem_fun(*this, &MainWindow::on_slider_release), false);
+  well_.pack_start(slider_, Gtk::PACK_SHRINK);
+
   btn_rec_.get_style_context()->add_class("needle-rec");
   transport_.set_halign(Gtk::ALIGN_CENTER);
   transport_.pack_start(btn_start_, Gtk::PACK_SHRINK);
@@ -178,6 +189,7 @@ void MainWindow::on_open()
   Gtk::FileChooserDialog dlg(*this, "Open WAV", Gtk::FILE_CHOOSER_ACTION_OPEN);
   dlg.add_button("_Cancel", Gtk::RESPONSE_CANCEL);
   dlg.add_button("_Open", Gtk::RESPONSE_ACCEPT);
+  apply_folder(dlg);
   auto filter = Gtk::FileFilter::create();
   filter->set_name("Wave files");
   filter->add_pattern("*.wav");
@@ -187,6 +199,7 @@ void MainWindow::on_open()
     return;
   if (rec_.open_wav(dlg.get_filename())) {
     save_path_ = dlg.get_filename();
+    remember_folder(save_path_);
     wave_.clear();
   }
 }
@@ -206,6 +219,7 @@ void MainWindow::on_save_as()
   dlg.add_button("_Cancel", Gtk::RESPONSE_CANCEL);
   dlg.add_button("_Save", Gtk::RESPONSE_ACCEPT);
   dlg.set_do_overwrite_confirmation(true);
+  apply_folder(dlg);
   dlg.set_current_name("sound.wav");
   auto filter = Gtk::FileFilter::create();
   filter->set_name("Wave files");
@@ -216,8 +230,10 @@ void MainWindow::on_save_as()
   std::string path = dlg.get_filename();
   if (path.size() < 4 || Glib::ustring(path.substr(path.size() - 4)).lowercase() != ".wav")
     path += ".wav";
-  if (rec_.save_as(path))
+  if (rec_.save_as(path)) {
     save_path_ = path;
+    remember_folder(path);
+  }
 }
 
 void MainWindow::on_quit()
@@ -241,18 +257,42 @@ void MainWindow::on_not_yet(const Glib::ustring& feature)
 
 void MainWindow::on_seek_start()
 {
-  if (rec_.state() == RecState::playing)
-    rec_.stop();
-  rec_.signal_position().emit(0, rec_.duration_ns());
-  wave_.set_playing_progress(0);
+  rec_.seek(0);
 }
 
 void MainWindow::on_seek_end()
 {
-  if (rec_.state() == RecState::playing)
-    rec_.stop();
-  rec_.signal_position().emit(rec_.duration_ns(), rec_.duration_ns());
-  wave_.set_playing_progress(1);
+  rec_.seek(rec_.duration_ns());
+}
+
+bool MainWindow::on_slider_press(GdkEventButton*)
+{
+  slider_drag_ = true;
+  return false;
+}
+
+bool MainWindow::on_slider_release(GdkEventButton*)
+{
+  slider_drag_ = false;
+  const double sec = slider_.get_value();
+  rec_.seek(static_cast<gint64>(sec * 1e9));
+  return false;
+}
+
+void MainWindow::remember_folder(const std::string& path)
+{
+  const std::string dir = Glib::path_get_dirname(path);
+  if (dir.empty())
+    return;
+  settings_.last_folder = dir;
+  settings_.save();
+}
+
+void MainWindow::apply_folder(Gtk::FileChooser& dlg)
+{
+  if (!settings_.last_folder.empty() &&
+      Glib::file_test(settings_.last_folder, Glib::FILE_TEST_IS_DIR))
+    dlg.set_current_folder(settings_.last_folder);
 }
 
 void MainWindow::fill_devices()
@@ -335,7 +375,11 @@ void MainWindow::on_position(gint64 pos, gint64 dur)
 {
   pos_lab_.set_text("Position: " + format_secs(pos));
   len_lab_.set_text("Length: " + format_secs(dur));
-  if (rec_.state() == RecState::playing && dur > 0)
+  const double max = dur > 0 ? static_cast<double>(dur) / 1e9 : 1.0;
+  slider_.set_range(0, max);
+  if (!slider_drag_)
+    slider_.set_value(static_cast<double>(pos) / 1e9);
+  if (dur > 0)
     wave_.set_playing_progress(static_cast<double>(pos) / static_cast<double>(dur));
 }
 
@@ -354,6 +398,7 @@ void MainWindow::sync_buttons()
   btn_stop_.set_sensitive(rec || play);
   btn_start_.set_sensitive(rec_.has_tape() && !rec);
   btn_end_.set_sensitive(rec_.has_tape() && !rec);
+  slider_.set_sensitive(rec_.has_tape() && !rec);
   mic_.set_sensitive(!rec);
 }
 

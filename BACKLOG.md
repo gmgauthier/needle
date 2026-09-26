@@ -1,13 +1,12 @@
 # Needle backlog
 
-Current release: **unreleased (M0–M1 in tree)**. Last updated: 2026-09-26.
+Current release: **v0.1.0**. Last updated: 2026-09-26.
 
 Windows 95 Sound Recorder. Binary `needle`. Suite catalog: `lcos-projects/PRODUCT-BACKLOG.md`. Plan: [DEVELOPMENT.md](DEVELOPMENT.md). How to land work: [DEVELOPMENT.md](DEVELOPMENT.md#process) — `feature/` / `fix/` branches, PRs to `master`, lint gate, semver on shipped PRs.
 
 ## High Priority
 
-- Seek on the position slider
-- Remember last folder in `~/.config/needle/needle.ini`
+None. M2 (seek + last folder) is in this branch.
 
 ## Low Priority
 
