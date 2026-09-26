@@ -1,12 +1,12 @@
 # Needle backlog
 
-Current release: **v0.2.0**. Last updated: 2026-09-26.
+Current release: **v0.3.0**. Last updated: 2026-09-26.
 
 Windows 95 Sound Recorder. Binary `needle`. Suite catalog: `lcos-projects/PRODUCT-BACKLOG.md`. Plan: [DEVELOPMENT.md](DEVELOPMENT.md). How to land work: [DEVELOPMENT.md](DEVELOPMENT.md#process) — `feature/` / `fix/` branches, PRs to `master`, lint gate, semver on shipped PRs.
 
 ## High Priority
 
-M4 codecs (this branch): Save As / Open FLAC, Ogg Vorbis, MP3. Tape stays WAV.
+None.
 
 ## Low Priority
 
@@ -24,6 +24,8 @@ M4 codecs (this branch): Save As / Open FLAC, Ogg Vorbis, MP3. Tape stays WAV.
 - GNOME Sound Recorder re-theme
 
 ## Shipped
+
+**v0.3.0** — M4: Save As / Open FLAC, Ogg Vorbis, MP3. Tape stays WAV.
 
 **v0.2.0** — M2: seek slider, last folder in `~/.config/needle/needle.ini`, README screenshot.
 

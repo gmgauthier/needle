@@ -1,3 +1,9 @@
+needle (0.3.0-1) unstable; urgency=medium
+
+  * M4: Save As / Open FLAC, Ogg Vorbis, and MP3. Tape stays WAV.
+
+ -- Greg Gauthier <gmgauthier@protonmail.com>  Sat, 26 Sep 2026 19:45:00 +0100
+
 needle (0.2.0-1) unstable; urgency=medium
 
   * M2: seek slider, remember last folder, README screenshot.
