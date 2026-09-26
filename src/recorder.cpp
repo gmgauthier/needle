@@ -10,6 +10,7 @@
 
 #include <cmath>
 #include <cstdio>
+#include <string>
 
 namespace needle {
 namespace {
@@ -45,7 +46,17 @@ bool copy_file(const std::string& from, const std::string& to)
 
 }  // namespace
 
-Recorder::Recorder() = default;
+Recorder::Recorder()
+{
+  input_.id = "default";
+  input_.label = "Default";
+  input_.backend = AudioBackend::system_default;
+}
+
+void Recorder::set_input(const AudioDevice& device)
+{
+  input_ = device;
+}
 
 Recorder::~Recorder()
 {
@@ -95,6 +106,14 @@ bool Recorder::start_pipeline(const std::string& desc, const char* sink_name,
     if (sink) {
       g_object_set(sink, "location", location.c_str(), nullptr);
       gst_object_unref(sink);
+    }
+  }
+  if (input_.backend != AudioBackend::system_default && !input_.id.empty() &&
+      input_.id != "default") {
+    GstElement* src = gst_bin_get_by_name(GST_BIN(pipeline_), "src");
+    if (src) {
+      g_object_set(src, "device", input_.id.c_str(), nullptr);
+      gst_object_unref(src);
     }
   }
   GstBus* bus = gst_element_get_bus(pipeline_);
@@ -221,11 +240,16 @@ bool Recorder::record()
   stop();
   path_ = tape_path();
   g_unlink(path_.c_str());
-  const char* desc =
-      "autoaudiosrc name=src ! audioconvert ! audioresample ! "
-      "audio/x-raw,rate=44100,channels=1 ! tee name=t "
-      "t. ! queue ! wavenc ! filesink name=fs "
-      "t. ! queue ! level name=lvl interval=100000000 ! fakesink";
+  const char* src_el = "autoaudiosrc";
+  if (input_.backend == AudioBackend::pulse && !input_.id.empty() && input_.id != "default")
+    src_el = "pulsesrc";
+  else if (input_.backend == AudioBackend::alsa && !input_.id.empty() && input_.id != "default")
+    src_el = "alsasrc";
+  const std::string desc = std::string(src_el) +
+                           " name=src ! audioconvert ! audioresample ! "
+                           "audio/x-raw,rate=44100,channels=1 ! tee name=t "
+                           "t. ! queue ! wavenc ! filesink name=fs "
+                           "t. ! queue ! level name=lvl interval=100000000 ! fakesink";
   if (!start_pipeline(desc, "fs", path_))
     return false;
   has_tape_ = true;

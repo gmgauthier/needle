@@ -36,6 +36,8 @@ executable(
   'src/about_dialog.cpp',
   'src/wave_view.cpp',
   'src/recorder.cpp',
+  'src/audio_devices.cpp',
+  'src/settings.cpp',
   include_directories: inc,
   dependencies: [gtkmm, gst],
   install: true,

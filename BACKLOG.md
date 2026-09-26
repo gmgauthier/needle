@@ -13,7 +13,6 @@ Windows 95 Sound Recorder. Binary `needle`. Suite catalog: `lcos-projects/PRODUC
 
 - Effects: volume, speed, reverse, echo (Win95 menus)
 - Insert File / Mix with File
-- Input device picker (default source stays v1)
 
 ## Out of Scope
 
@@ -27,4 +26,4 @@ Windows 95 Sound Recorder. Binary `needle`. Suite catalog: `lcos-projects/PRODUC
 
 ## Shipped
 
-Nothing tagged yet. M0–M1 are in this tree: window, green waveform, Record / Stop / Play, WAV New / Open / Save As.
+Nothing tagged yet. M0–M1 are in this tree: window, green waveform, Record / Stop / Play, WAV New / Open / Save As, microphone combo (Pulse then ALSA; Default / Internal microphone if none).

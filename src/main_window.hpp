@@ -2,10 +2,14 @@
 
 #pragma once
 
+#include "audio_devices.hpp"
 #include "recorder.hpp"
+#include "settings.hpp"
 #include "wave_view.hpp"
 
 #include <gtkmm.h>
+
+#include <vector>
 
 namespace needle {
 
@@ -34,6 +38,9 @@ class MainWindow : public Gtk::Window {
   void on_error(const Glib::ustring& msg);
   bool confirm_discard();
   void sync_buttons();
+  void fill_devices();
+  void apply_selected_device();
+  AudioDevice selected_device() const;
   Glib::ustring format_secs(gint64 ns) const;
 
   Gtk::MenuItem* add_item(Gtk::Menu& menu, const Glib::ustring& label,
@@ -53,9 +60,14 @@ class MainWindow : public Gtk::Window {
   Gtk::Button btn_rec_{"Rec"};
   Gtk::Button btn_stop_{"Stop"};
   Gtk::Button btn_play_{"Play"};
+  Gtk::Box mic_row_{Gtk::ORIENTATION_HORIZONTAL, 6};
+  Gtk::Label mic_lab_{"Microphone"};
+  Gtk::ComboBoxText mic_;
   Gtk::Label status_{"Stopped"};
   Glib::RefPtr<Gtk::AccelGroup> accel_;
   Recorder rec_;
+  Settings settings_;
+  std::vector<AudioDevice> devices_;
   std::string save_path_;
 };
 

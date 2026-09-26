@@ -40,6 +40,11 @@ MainWindow::MainWindow()
   transport_.pack_start(btn_stop_, Gtk::PACK_SHRINK);
   transport_.pack_start(btn_play_, Gtk::PACK_SHRINK);
   well_.pack_start(transport_, Gtk::PACK_SHRINK);
+  mic_lab_.set_xalign(0);
+  mic_.set_hexpand(true);
+  mic_row_.pack_start(mic_lab_, Gtk::PACK_SHRINK);
+  mic_row_.pack_start(mic_, Gtk::PACK_EXPAND_WIDGET);
+  well_.pack_start(mic_row_, Gtk::PACK_SHRINK);
   status_.set_xalign(0);
   well_.pack_start(status_, Gtk::PACK_SHRINK);
 
@@ -53,10 +58,13 @@ MainWindow::MainWindow()
   rec_.signal_level().connect(sigc::mem_fun(*this, &MainWindow::on_level));
   rec_.signal_position().connect(sigc::mem_fun(*this, &MainWindow::on_position));
   rec_.signal_error().connect(sigc::mem_fun(*this, &MainWindow::on_error));
+  mic_.signal_changed().connect(sigc::mem_fun(*this, &MainWindow::apply_selected_device));
 
   root_.pack_start(menubar_, Gtk::PACK_SHRINK);
   root_.pack_start(well_, Gtk::PACK_SHRINK);
   add(root_);
+  settings_.load();
+  fill_devices();
   rec_.new_tape();
   sync_buttons();
   show_all();
@@ -247,8 +255,44 @@ void MainWindow::on_seek_end()
   wave_.set_playing_progress(1);
 }
 
+void MainWindow::fill_devices()
+{
+  devices_ = list_audio_inputs();
+  const std::string keep =
+      mic_.get_active_id().empty() ? settings_.audio_device : mic_.get_active_id().raw();
+  mic_.remove_all();
+  for (const auto& d : devices_)
+    mic_.append(d.id, d.label);
+  const std::string pick = pick_audio_device(devices_, keep);
+  mic_.set_active_id(pick);
+  apply_selected_device();
+}
+
+AudioDevice MainWindow::selected_device() const
+{
+  const std::string id = mic_.get_active_id().raw();
+  for (const auto& d : devices_) {
+    if (d.id == id)
+      return d;
+  }
+  AudioDevice def;
+  def.id = "default";
+  def.label = "Default";
+  def.backend = AudioBackend::system_default;
+  return def;
+}
+
+void MainWindow::apply_selected_device()
+{
+  const AudioDevice d = selected_device();
+  rec_.set_input(d);
+  settings_.audio_device = d.id;
+  settings_.save();
+}
+
 void MainWindow::on_record()
 {
+  fill_devices();
   rec_.record();
 }
 
@@ -310,6 +354,7 @@ void MainWindow::sync_buttons()
   btn_stop_.set_sensitive(rec || play);
   btn_start_.set_sensitive(rec_.has_tape() && !rec);
   btn_end_.set_sensitive(rec_.has_tape() && !rec);
+  mic_.set_sensitive(!rec);
 }
 
 Glib::ustring MainWindow::format_secs(gint64 ns) const

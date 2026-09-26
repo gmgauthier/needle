@@ -12,7 +12,7 @@ Shares GStreamer with EarBlaster. GNOME Sound Recorder is a phone app — not th
 
 ## Status (2026-09-26)
 
-**M0–M1 in tree.** Window plus record / stop / play of a mono 44.1 kHz WAV from the default Pulse/ALSA source.
+**M0–M1 in tree.** Window plus record / stop / play of a mono 44.1 kHz WAV. Microphone combo lists Pulse (then ALSA) inputs; empty list falls back to Default / Internal microphone.
 
 ## 1. Locked decisions
 
@@ -22,11 +22,11 @@ Shares GStreamer with EarBlaster. GNOME Sound Recorder is a phone app — not th
 | Name | Needle. Binary `needle`. APP_ID `org.gmgauthier.Needle` |
 | Rejected | TapeDeck, Greenwave, SndRec, Dicta |
 | Toolkit | C++17, gtkmm-3.0, GTK3 CSS, Meson |
-| Engine | GStreamer `autoaudiosrc` → `wavenc`. Same stack as EarBlaster |
+| Engine | GStreamer `pulsesrc` / `alsasrc` / `autoaudiosrc` → `wavenc`. Same stack as EarBlaster |
 | File | Uncompressed **WAV**. One tape in the window |
 | Look | Small decorated window. Green waveform on black. Transport: seek-start, seek-end, Record, Stop, Play |
 | Network | None |
-| Never as v1 | MP3/Ogg encode, mixer, device picker, effects (echo/reverse/speed), clipboard audio, 60-second cap as a product |
+| Never as v1 | MP3/Ogg encode, mixer, effects (echo/reverse/speed), clipboard audio, 60-second cap as a product |
 | Init | No systemd |
 | Brand | LCOS beige / navy. No Bryan’s seal. Mark is a green trace on navy |
 | License | The Unlicense |
@@ -41,6 +41,7 @@ File  Edit  Effects  Help
 +--------------------------------------+
  Position: 0.00 sec     Length: 0.00 sec
  [ |< ] [ >| ] [ Rec ] [ Stop ] [ Play ]
+ Microphone [ combo of inputs ]
  status
 ```
 

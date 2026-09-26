@@ -6,6 +6,8 @@
 #include <sigc++/connection.h>
 #include <sigc++/signal.h>
 
+#include "audio_devices.hpp"
+
 #include <gst/gst.h>
 
 #include <string>
@@ -44,6 +46,12 @@ class Recorder {
     return duration_ns_;
   }
 
+  void set_input(const AudioDevice& device);
+  const AudioDevice& input() const
+  {
+    return input_;
+  }
+
   bool new_tape();
   bool open_wav(const std::string& path);
   bool save_as(const std::string& path);
@@ -76,6 +84,7 @@ class Recorder {
   void set_state(RecState s);
   void query_times();
 
+  AudioDevice input_;
   GstElement* pipeline_ = nullptr;
   guint bus_watch_ = 0;
   RecState state_ = RecState::empty;
