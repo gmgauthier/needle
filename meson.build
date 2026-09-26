@@ -13,6 +13,7 @@ project(
 
 gtkmm = dependency('gtkmm-3.0')
 gst = dependency('gstreamer-1.0')
+gst_app = dependency('gstreamer-app-1.0')
 
 conf = configuration_data()
 conf.set_quoted('VERSION', meson.project_version())
@@ -39,7 +40,7 @@ executable(
   'src/audio_devices.cpp',
   'src/settings.cpp',
   include_directories: inc,
-  dependencies: [gtkmm, gst],
+  dependencies: [gtkmm, gst, gst_app],
   install: true,
   install_dir: get_option('bindir'),
 )

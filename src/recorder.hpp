@@ -83,6 +83,7 @@ class Recorder {
   bool on_tick();
   void set_state(RecState s);
   void query_times();
+  void pull_wave();
 
   AudioDevice input_;
   GstElement* pipeline_ = nullptr;

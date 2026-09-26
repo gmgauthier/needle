@@ -7,40 +7,15 @@
 #include <glibmm/fileutils.h>
 #include <glibmm/main.h>
 #include <glibmm/miscutils.h>
+#include <gst/app/gstappsink.h>
 
+#include <algorithm>
+#include <cmath>
 #include <cstdio>
 #include <string>
 
 namespace needle {
 namespace {
-
-double db_to_vis(double db)
-{
-  if (!(db > -200))
-    return 0;
-  if (db > 0)
-    db = 0;
-  if (db < -50)
-    db = -50;
-  return (db + 50.0) / 50.0;
-}
-
-double first_channel_db(const GstStructure* st, const char* key)
-{
-  const GValue* arr = gst_structure_get_value(st, key);
-  if (!arr)
-    return -G_MAXDOUBLE;
-  const GValue* v = nullptr;
-  if (GST_VALUE_HOLDS_ARRAY(arr) && gst_value_array_get_size(arr) > 0)
-    v = gst_value_array_get_value(arr, 0);
-  else if (GST_VALUE_HOLDS_LIST(arr) && gst_value_list_get_size(arr) > 0)
-    v = gst_value_list_get_value(arr, 0);
-  else if (G_VALUE_HOLDS_DOUBLE(arr))
-    return g_value_get_double(arr);
-  if (v && G_VALUE_HOLDS_DOUBLE(v))
-    return g_value_get_double(v);
-  return -G_MAXDOUBLE;
-}
 
 bool copy_file(const std::string& from, const std::string& to)
 {
@@ -134,6 +109,14 @@ bool Recorder::start_pipeline(const std::string& desc, const char* sink_name,
       gst_object_unref(src);
     }
   }
+  GstElement* wave = gst_bin_get_by_name(GST_BIN(pipeline_), "wave");
+  if (wave) {
+    gst_app_sink_set_emit_signals(GST_APP_SINK(wave), FALSE);
+    GstCaps* caps = gst_caps_from_string("audio/x-raw,format=F32LE,channels=1,layout=interleaved");
+    gst_app_sink_set_caps(GST_APP_SINK(wave), caps);
+    gst_caps_unref(caps);
+    gst_object_unref(wave);
+  }
   GstBus* bus = gst_element_get_bus(pipeline_);
   bus_watch_ = gst_bus_add_watch(bus, &Recorder::on_bus, this);
   gst_object_unref(bus);
@@ -142,7 +125,7 @@ bool Recorder::start_pipeline(const std::string& desc, const char* sink_name,
     signal_error_.emit("Could not start audio");
     return false;
   }
-  tick_ = Glib::signal_timeout().connect(sigc::mem_fun(*this, &Recorder::on_tick), 100);
+  tick_ = Glib::signal_timeout().connect(sigc::mem_fun(*this, &Recorder::on_tick), 50);
   return true;
 }
 
@@ -164,27 +147,49 @@ gboolean Recorder::on_bus(GstBus*, GstMessage* msg, gpointer data)
     case GST_MESSAGE_EOS:
       self->stop();
       break;
-    case GST_MESSAGE_ELEMENT: {
-      const GstStructure* st = gst_message_get_structure(msg);
-      if (!st || !gst_structure_has_name(st, "level"))
-        break;
-      const double peak = first_channel_db(st, "peak");
-      const double rms = first_channel_db(st, "rms");
-      double db = peak;
-      if (rms > db)
-        db = rms;
-      if (db > -200)
-        self->signal_level_.emit(db_to_vis(db));
-      break;
-    }
     default:
       break;
   }
   return TRUE;
 }
 
+void Recorder::pull_wave()
+{
+  if (!pipeline_ || state_ != RecState::recording)
+    return;
+  GstElement* el = gst_bin_get_by_name(GST_BIN(pipeline_), "wave");
+  if (!el)
+    return;
+  auto* as = GST_APP_SINK(el);
+  double peak = 0;
+  bool any = false;
+  for (;;) {
+    GstSample* sample = gst_app_sink_try_pull_sample(as, 0);
+    if (!sample)
+      break;
+    GstBuffer* buf = gst_sample_get_buffer(sample);
+    GstMapInfo map;
+    if (buf && gst_buffer_map(buf, &map, GST_MAP_READ) && map.size >= sizeof(float)) {
+      const auto* f = reinterpret_cast<const float*>(map.data);
+      const size_t n = map.size / sizeof(float);
+      for (size_t i = 0; i < n; ++i) {
+        const double a = std::fabs(static_cast<double>(f[i]));
+        if (a > peak)
+          peak = a;
+      }
+      gst_buffer_unmap(buf, &map);
+      any = true;
+    }
+    gst_sample_unref(sample);
+  }
+  gst_object_unref(el);
+  if (any)
+    signal_level_.emit(std::min(1.0, peak * 2.5));
+}
+
 bool Recorder::on_tick()
 {
+  pull_wave();
   query_times();
   signal_position_.emit(position_ns_, duration_ns_);
   return true;
@@ -264,13 +269,14 @@ bool Recorder::record()
     src_el = "pulsesrc";
   else if (input_.backend == AudioBackend::alsa && !input_.id.empty() && input_.id != "default")
     src_el = "alsasrc";
-  const std::string desc = std::string(src_el) +
-                           " name=src ! audioconvert ! audioresample ! "
-                           "audio/x-raw,rate=44100,channels=1 ! tee name=t "
-                           "t. ! queue ! wavenc ! filesink name=fs "
-                           "t. ! queue leaky=downstream max-size-buffers=8 ! "
-                           "level name=lvl interval=50000000 post-messages=true ! "
-                           "fakesink sync=false async=false";
+  const std::string desc =
+      std::string(src_el) +
+      " name=src ! audioconvert ! audioresample ! "
+      "audio/x-raw,rate=44100,channels=1 ! tee name=t "
+      "t. ! queue ! wavenc ! filesink name=fs "
+      "t. ! queue leaky=downstream max-size-buffers=8 ! "
+      "audioconvert ! audio/x-raw,format=F32LE,channels=1,layout=interleaved ! "
+      "appsink name=wave sync=false max-buffers=8 drop=true";
   if (!start_pipeline(desc, "fs", path_))
     return false;
   has_tape_ = true;

@@ -49,7 +49,7 @@ bool WaveView::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
   cr->rectangle(0, 0, w, h);
   cr->fill();
 
-  cr->set_source_rgb(0, 0.35, 0);
+  cr->set_source_rgb(0.15, 0.7, 0.15);
   cr->set_line_width(1);
   cr->move_to(0, h * 0.5);
   cr->line_to(w, h * 0.5);
@@ -58,8 +58,8 @@ bool WaveView::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
   if (samples_.empty())
     return true;
 
-  cr->set_source_rgb(0.2, 1.0, 0.2);
-  cr->set_line_width(1.2);
+  cr->set_source_rgb(0.2, 1.0, 0.15);
+  cr->set_line_width(1.4);
   const int n = static_cast<int>(samples_.size());
   const double mid = h * 0.5;
   const double scale = h * 0.45;
