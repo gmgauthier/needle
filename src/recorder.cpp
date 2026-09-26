@@ -8,20 +8,38 @@
 #include <glibmm/main.h>
 #include <glibmm/miscutils.h>
 
-#include <cmath>
 #include <cstdio>
 #include <string>
 
 namespace needle {
 namespace {
 
-double peak_to_amp(double db)
+double db_to_vis(double db)
 {
+  if (!(db > -200))
+    return 0;
   if (db > 0)
     db = 0;
-  if (db < -60)
-    db = -60;
-  return std::pow(10.0, db / 20.0);
+  if (db < -50)
+    db = -50;
+  return (db + 50.0) / 50.0;
+}
+
+double first_channel_db(const GstStructure* st, const char* key)
+{
+  const GValue* arr = gst_structure_get_value(st, key);
+  if (!arr)
+    return -G_MAXDOUBLE;
+  const GValue* v = nullptr;
+  if (GST_VALUE_HOLDS_ARRAY(arr) && gst_value_array_get_size(arr) > 0)
+    v = gst_value_array_get_value(arr, 0);
+  else if (GST_VALUE_HOLDS_LIST(arr) && gst_value_list_get_size(arr) > 0)
+    v = gst_value_list_get_value(arr, 0);
+  else if (G_VALUE_HOLDS_DOUBLE(arr))
+    return g_value_get_double(arr);
+  if (v && G_VALUE_HOLDS_DOUBLE(v))
+    return g_value_get_double(v);
+  return -G_MAXDOUBLE;
 }
 
 bool copy_file(const std::string& from, const std::string& to)
@@ -150,12 +168,13 @@ gboolean Recorder::on_bus(GstBus*, GstMessage* msg, gpointer data)
       const GstStructure* st = gst_message_get_structure(msg);
       if (!st || !gst_structure_has_name(st, "level"))
         break;
-      const GValue* arr = gst_structure_get_value(st, "peak");
-      if (!arr || !GST_VALUE_HOLDS_LIST(arr) || gst_value_list_get_size(arr) == 0)
-        break;
-      const GValue* v = gst_value_list_get_value(arr, 0);
-      if (G_VALUE_HOLDS_DOUBLE(v))
-        self->signal_level_.emit(peak_to_amp(g_value_get_double(v)));
+      const double peak = first_channel_db(st, "peak");
+      const double rms = first_channel_db(st, "rms");
+      double db = peak;
+      if (rms > db)
+        db = rms;
+      if (db > -200)
+        self->signal_level_.emit(db_to_vis(db));
       break;
     }
     default:
@@ -249,7 +268,9 @@ bool Recorder::record()
                            " name=src ! audioconvert ! audioresample ! "
                            "audio/x-raw,rate=44100,channels=1 ! tee name=t "
                            "t. ! queue ! wavenc ! filesink name=fs "
-                           "t. ! queue ! level name=lvl interval=100000000 ! fakesink";
+                           "t. ! queue leaky=downstream max-size-buffers=8 ! "
+                           "level name=lvl interval=50000000 post-messages=true ! "
+                           "fakesink sync=false async=false";
   if (!start_pipeline(desc, "fs", path_))
     return false;
   has_tape_ = true;

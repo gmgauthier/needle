@@ -55,25 +55,19 @@ bool WaveView::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
   cr->line_to(w, h * 0.5);
   cr->stroke();
 
-  cr->set_source_rgb(0.2, 1.0, 0.2);
-  cr->set_line_width(1.5);
-
-  if (samples_.empty()) {
-    cr->move_to(0, h * 0.5);
-    cr->line_to(w, h * 0.5);
-    cr->stroke();
+  if (samples_.empty())
     return true;
-  }
 
+  cr->set_source_rgb(0.2, 1.0, 0.2);
+  cr->set_line_width(1.2);
   const int n = static_cast<int>(samples_.size());
+  const double mid = h * 0.5;
+  const double scale = h * 0.45;
   for (int i = 0; i < n; ++i) {
-    const double x = n == 1 ? 0 : (static_cast<double>(i) / (n - 1)) * (w - 1);
+    const double x = n == 1 ? w * 0.5 : (static_cast<double>(i) / (n - 1)) * (w - 1);
     const double amp = samples_[static_cast<size_t>(i)];
-    const double y = h * 0.5 - amp * (h * 0.45);
-    if (i == 0)
-      cr->move_to(x, y);
-    else
-      cr->line_to(x, y);
+    cr->move_to(x, mid - amp * scale);
+    cr->line_to(x, mid + amp * scale);
   }
   cr->stroke();
 
