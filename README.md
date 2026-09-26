@@ -12,7 +12,7 @@ LCOS itself: [https://github.com/BryanLunduke/LCOS](https://github.com/BryanLund
 
 ## Status
 
-**v0.2.0.** Record, stop, and play a WAV; microphone combo; green level trace; seek slider; last folder. See [INSTALL.md](INSTALL.md) and [DEVELOPMENT.md](DEVELOPMENT.md).
+**v0.2.0.** Record, stop, and play a WAV; microphone combo; green level trace; seek slider; last folder. M4 in this branch: Save As / Open FLAC, Ogg Vorbis, MP3 (tape stays WAV). See [INSTALL.md](INSTALL.md) and [DEVELOPMENT.md](DEVELOPMENT.md).
 
 | Doc | What |
 |---|---|

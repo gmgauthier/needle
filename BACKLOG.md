@@ -6,7 +6,7 @@ Windows 95 Sound Recorder. Binary `needle`. Suite catalog: `lcos-projects/PRODUC
 
 ## High Priority
 
-None.
+M4 codecs (this branch): Save As / Open FLAC, Ogg Vorbis, MP3. Tape stays WAV.
 
 ## Low Priority
 

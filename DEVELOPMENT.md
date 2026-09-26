@@ -12,7 +12,7 @@ Shares GStreamer with EarBlaster. GNOME Sound Recorder is a phone app — not th
 
 ## Status (2026-09-26)
 
-**v0.2.0.** Window plus record / stop / play of a mono 44.1 kHz WAV. Microphone combo lists Pulse (then ALSA) inputs; empty list falls back to Default / Internal microphone. Seek slider and last folder. Packaged.
+**v0.2.0.** Window plus record / stop / play of a mono 44.1 kHz WAV. Microphone combo lists Pulse (then ALSA) inputs; empty list falls back to Default / Internal microphone. Seek slider and last folder. Packaged. **M4 in this branch:** Save As / Open FLAC, Ogg Vorbis, MP3; tape stays WAV.
 
 ## 1. Locked decisions
 
@@ -23,10 +23,10 @@ Shares GStreamer with EarBlaster. GNOME Sound Recorder is a phone app — not th
 | Rejected | TapeDeck, Greenwave, SndRec, Dicta |
 | Toolkit | C++17, gtkmm-3.0, GTK3 CSS, Meson |
 | Engine | GStreamer `pulsesrc` / `alsasrc` / `autoaudiosrc` → `wavenc`. Same stack as EarBlaster |
-| File | Uncompressed **WAV**. One tape in the window |
+| File | Working tape is uncompressed **WAV**. Save As / Open: WAV, FLAC, Ogg Vorbis, MP3 |
 | Look | Small decorated window. Green waveform on black. Transport: seek-start, seek-end, Record, Stop, Play |
 | Network | None |
-| Never as v1 | MP3/Ogg encode, mixer, effects (echo/reverse/speed), clipboard audio, 60-second cap as a product |
+| Never as v1 | Mixer, effects (echo/reverse/speed), clipboard audio, 60-second cap as a product |
 | Init | No systemd |
 | Brand | LCOS beige / navy. No Bryan’s seal. Mark is a green trace on navy |
 | License | The Unlicense |
@@ -75,9 +75,22 @@ Seek on the slider, last-folder in `~/.config/needle/needle.ini`, README **Vende
 
 `debian/`, `scripts/release.sh` → `.deb`, tarball, AppImage. **Shipped in v0.1.0.**
 
+### M4 — Codecs
+
+Working tape stays **WAV**. Save As and Open grow formats that belong in a Sound Recorder, encoded with GStreamer plugins on LCOS — not a second player.
+
+| Format | Library / element | Role |
+|---|---|---|
+| WAV | `wavenc` (already) | Native tape |
+| FLAC | plugins-good `flacenc` | Lossless Save As / Open |
+| Ogg Vorbis | plugins-good `vorbisenc` | Lossy Save As / Open |
+| MP3 | plugins-ugly `lamemp3enc` (LAME) | Lossy Save As / Open |
+
+File → Save As filter list. Effects still parked. EarBlaster remains the player. **This branch.**
+
 ## 5. Parked
 
-Effects (volume / speed / reverse / echo). Insert File. Mix. MP3 / FLAC / Vorbis Save As (M4).
+Effects (volume / speed / reverse / echo). Insert File. Mix.
 
 ## 6. Traps
 

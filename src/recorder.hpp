@@ -53,7 +53,7 @@ class Recorder {
   }
 
   bool new_tape();
-  bool open_wav(const std::string& path);
+  bool open_file(const std::string& path);
   bool save_as(const std::string& path);
   bool record();
   bool play();
@@ -86,6 +86,8 @@ class Recorder {
   void query_times();
   void pull_wave();
   void probe_duration();
+  bool transcode(const std::string& desc, const std::string& in_path, const std::string& out_path,
+                 const char* fail);
 
   AudioDevice input_;
   GstElement* pipeline_ = nullptr;

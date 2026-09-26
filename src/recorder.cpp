@@ -37,6 +37,29 @@ bool copy_file(const std::string& from, const std::string& to)
   return true;
 }
 
+std::string lower_ext(const std::string& path)
+{
+  const std::string base = Glib::path_get_basename(path);
+  const auto dot = base.rfind('.');
+  if (dot == std::string::npos || dot + 1 >= base.size())
+    return {};
+  return Glib::ustring(base.substr(dot)).lowercase().raw();
+}
+
+const char* encode_desc(const std::string& ext)
+{
+  if (ext == ".flac")
+    return "filesrc name=in ! wavparse ! audioconvert ! audioresample ! "
+           "flacenc ! filesink name=out";
+  if (ext == ".ogg" || ext == ".oga")
+    return "filesrc name=in ! wavparse ! audioconvert ! audioresample ! "
+           "vorbisenc ! oggmux ! filesink name=out";
+  if (ext == ".mp3")
+    return "filesrc name=in ! wavparse ! audioconvert ! audioresample ! "
+           "lamemp3enc target=bitrate bitrate=128 ! xingmux ! filesink name=out";
+  return nullptr;
+}
+
 }  // namespace
 
 Recorder::Recorder()
@@ -223,7 +246,60 @@ bool Recorder::new_tape()
   return true;
 }
 
-bool Recorder::open_wav(const std::string& path)
+bool Recorder::transcode(const std::string& desc, const std::string& in_path,
+                         const std::string& out_path, const char* fail)
+{
+  GError* err = nullptr;
+  GstElement* p = gst_parse_launch(desc.c_str(), &err);
+  if (!p) {
+    Glib::ustring msg = err && err->message ? err->message : fail;
+    if (err)
+      g_error_free(err);
+    signal_error_.emit(msg);
+    return false;
+  }
+  if (err) {
+    g_error_free(err);
+    err = nullptr;
+  }
+  if (GstElement* in = gst_bin_get_by_name(GST_BIN(p), "in")) {
+    g_object_set(in, "location", in_path.c_str(), nullptr);
+    gst_object_unref(in);
+  }
+  if (GstElement* out = gst_bin_get_by_name(GST_BIN(p), "out")) {
+    g_object_set(out, "location", out_path.c_str(), nullptr);
+    gst_object_unref(out);
+  }
+  if (gst_element_set_state(p, GST_STATE_PLAYING) == GST_STATE_CHANGE_FAILURE) {
+    gst_object_unref(p);
+    signal_error_.emit(fail);
+    return false;
+  }
+  GstBus* bus = gst_element_get_bus(p);
+  GstMessage* msg = gst_bus_timed_pop_filtered(
+      bus, GST_CLOCK_TIME_NONE, static_cast<GstMessageType>(GST_MESSAGE_EOS | GST_MESSAGE_ERROR));
+  bool ok = true;
+  if (!msg) {
+    ok = false;
+    signal_error_.emit(fail);
+  } else if (GST_MESSAGE_TYPE(msg) == GST_MESSAGE_ERROR) {
+    GError* ge = nullptr;
+    gst_message_parse_error(msg, &ge, nullptr);
+    const Glib::ustring text = ge && ge->message ? ge->message : fail;
+    if (ge)
+      g_error_free(ge);
+    signal_error_.emit(text);
+    ok = false;
+  }
+  if (msg)
+    gst_message_unref(msg);
+  gst_object_unref(bus);
+  gst_element_set_state(p, GST_STATE_NULL);
+  gst_object_unref(p);
+  return ok;
+}
+
+bool Recorder::open_file(const std::string& path)
 {
   stop();
   if (!Glib::file_test(path, Glib::FILE_TEST_IS_REGULAR)) {
@@ -231,10 +307,20 @@ bool Recorder::open_wav(const std::string& path)
     return false;
   }
   path_ = tape_path();
-  if (!copy_file(path, path_)) {
-    signal_error_.emit("Could not open WAV");
-    return false;
+  const std::string ext = lower_ext(path);
+  bool ok = false;
+  if (ext == ".wav") {
+    ok = copy_file(path, path_);
+    if (!ok)
+      signal_error_.emit("Could not open WAV");
+  } else {
+    ok = transcode(
+        "filesrc name=in ! decodebin ! audioconvert ! audioresample ! "
+        "audio/x-raw,rate=44100,channels=1 ! wavenc ! filesink name=out",
+        path, path_, "Could not open sound");
   }
+  if (!ok)
+    return false;
   has_tape_ = true;
   dirty_ = false;
   position_ns_ = 0;
@@ -250,10 +336,25 @@ bool Recorder::save_as(const std::string& path)
   if (!has_tape_)
     return false;
   stop();
-  if (!copy_file(path_, path)) {
-    signal_error_.emit("Could not save WAV");
-    return false;
+  const std::string ext = lower_ext(path);
+  const char* desc = encode_desc(ext);
+  bool ok = false;
+  if (!desc) {
+    ok = copy_file(path_, path);
+    if (!ok)
+      signal_error_.emit("Could not save WAV");
+  } else {
+    const char* fail = "Could not save sound";
+    if (ext == ".flac")
+      fail = "Could not save FLAC";
+    else if (ext == ".ogg" || ext == ".oga")
+      fail = "Could not save Ogg Vorbis";
+    else if (ext == ".mp3")
+      fail = "Could not save MP3";
+    ok = transcode(desc, path_, path, fail);
   }
+  if (!ok)
+    return false;
   dirty_ = false;
   return true;
 }

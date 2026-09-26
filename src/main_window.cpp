@@ -9,6 +9,66 @@
 #include <sstream>
 
 namespace needle {
+namespace {
+
+void add_sound_filters(Gtk::FileChooserDialog& dlg)
+{
+  auto all = Gtk::FileFilter::create();
+  all->set_name("Audio files");
+  all->add_pattern("*.wav");
+  all->add_pattern("*.flac");
+  all->add_pattern("*.ogg");
+  all->add_pattern("*.oga");
+  all->add_pattern("*.mp3");
+  dlg.add_filter(all);
+
+  struct Item {
+    const char* name;
+    const char* pat;
+  };
+  const Item items[] = {
+      {"Wave (*.wav)", "*.wav"},
+      {"FLAC (*.flac)", "*.flac"},
+      {"Ogg Vorbis (*.ogg)", "*.ogg"},
+      {"MP3 (*.mp3)", "*.mp3"},
+  };
+  for (const auto& it : items) {
+    auto f = Gtk::FileFilter::create();
+    f->set_name(it.name);
+    f->add_pattern(it.pat);
+    if (std::string(it.pat) == "*.ogg")
+      f->add_pattern("*.oga");
+    dlg.add_filter(f);
+  }
+}
+
+bool has_audio_ext(const std::string& path)
+{
+  const Glib::ustring low = Glib::ustring(path).lowercase();
+  return low.size() >= 4 &&
+         (low.substr(low.size() - 4) == ".wav" || low.substr(low.size() - 4) == ".ogg" ||
+          low.substr(low.size() - 4) == ".oga" || low.substr(low.size() - 4) == ".mp3" ||
+          (low.size() >= 5 && low.substr(low.size() - 5) == ".flac"));
+}
+
+std::string with_filter_ext(std::string path, const Glib::RefPtr<Gtk::FileFilter>& filter)
+{
+  if (has_audio_ext(path))
+    return path;
+  std::string ext = ".wav";
+  if (filter) {
+    const Glib::ustring n = filter->get_name();
+    if (n.find("FLAC") != Glib::ustring::npos)
+      ext = ".flac";
+    else if (n.find("Ogg") != Glib::ustring::npos)
+      ext = ".ogg";
+    else if (n.find("MP3") != Glib::ustring::npos)
+      ext = ".mp3";
+  }
+  return path + ext;
+}
+
+}  // namespace
 
 MainWindow::MainWindow()
 {
@@ -186,18 +246,14 @@ void MainWindow::on_open()
 {
   if (!confirm_discard())
     return;
-  Gtk::FileChooserDialog dlg(*this, "Open WAV", Gtk::FILE_CHOOSER_ACTION_OPEN);
+  Gtk::FileChooserDialog dlg(*this, "Open sound", Gtk::FILE_CHOOSER_ACTION_OPEN);
   dlg.add_button("_Cancel", Gtk::RESPONSE_CANCEL);
   dlg.add_button("_Open", Gtk::RESPONSE_ACCEPT);
   apply_folder(dlg);
-  auto filter = Gtk::FileFilter::create();
-  filter->set_name("Wave files");
-  filter->add_pattern("*.wav");
-  filter->add_pattern("*.WAV");
-  dlg.add_filter(filter);
+  add_sound_filters(dlg);
   if (dlg.run() != Gtk::RESPONSE_ACCEPT)
     return;
-  if (rec_.open_wav(dlg.get_filename())) {
+  if (rec_.open_file(dlg.get_filename())) {
     save_path_ = dlg.get_filename();
     remember_folder(save_path_);
     wave_.clear();
@@ -215,21 +271,16 @@ void MainWindow::on_save()
 
 void MainWindow::on_save_as()
 {
-  Gtk::FileChooserDialog dlg(*this, "Save WAV", Gtk::FILE_CHOOSER_ACTION_SAVE);
+  Gtk::FileChooserDialog dlg(*this, "Save sound", Gtk::FILE_CHOOSER_ACTION_SAVE);
   dlg.add_button("_Cancel", Gtk::RESPONSE_CANCEL);
   dlg.add_button("_Save", Gtk::RESPONSE_ACCEPT);
   dlg.set_do_overwrite_confirmation(true);
   apply_folder(dlg);
   dlg.set_current_name("sound.wav");
-  auto filter = Gtk::FileFilter::create();
-  filter->set_name("Wave files");
-  filter->add_pattern("*.wav");
-  dlg.add_filter(filter);
+  add_sound_filters(dlg);
   if (dlg.run() != Gtk::RESPONSE_ACCEPT)
     return;
-  std::string path = dlg.get_filename();
-  if (path.size() < 4 || Glib::ustring(path.substr(path.size() - 4)).lowercase() != ".wav")
-    path += ".wav";
+  const std::string path = with_filter_ext(dlg.get_filename(), dlg.get_filter());
   if (rec_.save_as(path)) {
     save_path_ = path;
     remember_folder(path);

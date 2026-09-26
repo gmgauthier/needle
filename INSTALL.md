@@ -14,10 +14,11 @@ Version comes from `meson.build` (currently `0.2.0`).
 ## Runtime needs
 
 - GTK 3 / gtkmm-3.0
-- GStreamer 1.0 (plugins-base, plugins-good; Pulse or ALSA)
+- GStreamer 1.0 (plugins-base, plugins-good, plugins-ugly for MP3; Pulse or ALSA)
 
 ```
-sudo apt install libgtkmm-3.0-1t64 gstreamer1.0-plugins-base gstreamer1.0-plugins-good
+sudo apt install libgtkmm-3.0-1t64 gstreamer1.0-plugins-base \
+  gstreamer1.0-plugins-good gstreamer1.0-plugins-ugly
 ```
 
 ## 1. Debian package (preferred)
