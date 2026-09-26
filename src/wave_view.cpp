@@ -63,8 +63,10 @@ bool WaveView::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
   const int n = static_cast<int>(samples_.size());
   const double mid = h * 0.5;
   const double scale = h * 0.45;
+  const double dx = kMaxSamples > 1 ? static_cast<double>(w - 1) / (kMaxSamples - 1) : 0;
+  const int pad = kMaxSamples - n;
   for (int i = 0; i < n; ++i) {
-    const double x = n == 1 ? w * 0.5 : (static_cast<double>(i) / (n - 1)) * (w - 1);
+    const double x = (pad + i) * dx;
     const double amp = samples_[static_cast<size_t>(i)];
     cr->move_to(x, mid - amp * scale);
     cr->line_to(x, mid + amp * scale);
