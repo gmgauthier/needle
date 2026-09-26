@@ -1,12 +1,12 @@
 # Needle backlog
 
-Current release: **v0.1.0**. Last updated: 2026-09-26.
+Current release: **v0.2.0**. Last updated: 2026-09-26.
 
 Windows 95 Sound Recorder. Binary `needle`. Suite catalog: `lcos-projects/PRODUCT-BACKLOG.md`. Plan: [DEVELOPMENT.md](DEVELOPMENT.md). How to land work: [DEVELOPMENT.md](DEVELOPMENT.md#process) — `feature/` / `fix/` branches, PRs to `master`, lint gate, semver on shipped PRs.
 
 ## High Priority
 
-None. M2 (seek + last folder) is in this branch.
+None.
 
 ## Low Priority
 
@@ -24,5 +24,7 @@ None. M2 (seek + last folder) is in this branch.
 - GNOME Sound Recorder re-theme
 
 ## Shipped
+
+**v0.2.0** — M2: seek slider, last folder in `~/.config/needle/needle.ini`, README screenshot.
 
 **v0.1.0** — Window, green waveform (right-origin scroll), Record / Stop / Play, WAV New / Open / Save As, microphone combo, `.deb` / tarball / AppImage.

@@ -12,7 +12,7 @@ Shares GStreamer with EarBlaster. GNOME Sound Recorder is a phone app — not th
 
 ## Status (2026-09-26)
 
-**v0.1.0.** Window plus record / stop / play of a mono 44.1 kHz WAV. Microphone combo lists Pulse (then ALSA) inputs; empty list falls back to Default / Internal microphone. Packaged.
+**v0.2.0.** Window plus record / stop / play of a mono 44.1 kHz WAV. Microphone combo lists Pulse (then ALSA) inputs; empty list falls back to Default / Internal microphone. Seek slider and last folder. Packaged.
 
 ## 1. Locked decisions
 
@@ -69,15 +69,15 @@ Record / Stop / Play a WAV from `autoaudiosrc`. Live level into the waveform. Ne
 
 ### M2 — Chrome polish
 
-Seek on the slider, last-folder in `~/.config/needle/needle.ini`, README **Vended by Grok Build**, screenshot. **Done in this branch.**
+Seek on the slider, last-folder in `~/.config/needle/needle.ini`, README **Vended by Grok Build**, screenshot. **Shipped in v0.2.0.**
 
 ### M3 — Package
 
-`debian/`, `scripts/release.sh` → `.deb`, tarball, AppImage. Tag `v0.1.0`.
+`debian/`, `scripts/release.sh` → `.deb`, tarball, AppImage. **Shipped in v0.1.0.**
 
 ## 5. Parked
 
-Effects (volume / speed / reverse / echo). Insert File. Mix. Device picker. MP3.
+Effects (volume / speed / reverse / echo). Insert File. Mix. MP3 / FLAC / Vorbis Save As (M4).
 
 ## 6. Traps
 
