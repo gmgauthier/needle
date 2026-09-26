@@ -1,0 +1,32 @@
+# Needle
+
+**Vended by Grok Build**
+
+A **Sound Recorder** for The Lunduke Computer Operating System (LCOS). The window is Windows 95 Sound Recorder, not GNOME.
+
+Binary: `needle`. Unlicense.
+
+LCOS itself: [https://github.com/BryanLunduke/LCOS](https://github.com/BryanLunduke/LCOS)
+
+## Status
+
+**Unreleased (M0–M1).** Record, stop, and play a WAV from the default audio source. See [DEVELOPMENT.md](DEVELOPMENT.md).
+
+| Doc | What |
+|---|---|
+| [DEVELOPMENT.md](DEVELOPMENT.md) | Locked decisions, architecture, milestones, branching, semver, lint |
+
+## Build
+
+```
+sudo apt install build-essential meson ninja-build pkg-config g++ libgtkmm-3.0-dev libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-pulseaudio clang-format cppcheck
+meson setup build
+meson compile -C build
+./build/needle
+```
+
+PR lint gate: `./scripts/lint.sh` (CI runs this; no `--fix`). Format `src/` locally with `./scripts/lint.sh --fix`.
+
+## License
+
+[The Unlicense](https://unlicense.org). See [UNLICENSE](UNLICENSE).

@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Needle
+Comment=A Sound Recorder for The Lunduke Computer Operating System
+Exec=needle
+Icon=needle
+Terminal=false
+Hidden=false
+Categories=GTK;AudioVideo;Audio;
+StartupWMClass=needle
+StartupNotify=true
+MimeType=audio/x-wav;audio/wav;

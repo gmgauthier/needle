@@ -1,0 +1,16 @@
+/* Needle lcos skin — GTK3 CSS.
+ * Decorations stay with Clearlooks / Phenix. We only tint the client.
+ */
+
+window.needle-window {
+  background-color: #D4D0C8;
+}
+
+.needle-wave {
+  background-color: #000000;
+}
+
+.needle-rec {
+  color: #7A1010;
+  font-weight: bold;
+}
