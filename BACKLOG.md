@@ -26,4 +26,4 @@ Windows 95 Sound Recorder. Binary `needle`. Suite catalog: `lcos-projects/PRODUC
 
 ## Shipped
 
-Nothing tagged yet. M0–M1 are in this tree: window, green waveform, Record / Stop / Play, WAV New / Open / Save As, microphone combo (Pulse then ALSA; Default / Internal microphone if none).
+**v0.1.0** — Window, green waveform (right-origin scroll), Record / Stop / Play, WAV New / Open / Save As, microphone combo, `.deb` / tarball / AppImage.
