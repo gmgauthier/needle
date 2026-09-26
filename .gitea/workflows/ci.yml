@@ -1,0 +1,37 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+jobs:
+  lint:
+    runs-on: ubuntu-gitea
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install lint tools
+        run: |
+          apt update
+          apt -y --no-install-recommends install clang-format cppcheck
+
+      - name: Lint src (check only)
+        run: ./scripts/lint.sh
+
+  build:
+    runs-on: ubuntu-gitea
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build deps
+        run: |
+          apt update
+          DEBIAN_FRONTEND=noninteractive apt -y --no-install-recommends install \
+            meson ninja-build pkg-config g++ \
+            libgtkmm-3.0-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
+
+      - name: Meson compile
+        run: |
+          meson setup build --prefix=/usr
+          meson compile -C build
