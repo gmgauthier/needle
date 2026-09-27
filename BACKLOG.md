@@ -1,16 +1,15 @@
 # Needle backlog
 
-Current release: **v0.3.0**. Last updated: 2026-09-26.
+Current release: **v0.3.0**. Last updated: 2026-09-27.
 
 Windows 95 Sound Recorder. Binary `needle`. Suite catalog: `lcos-projects/PRODUCT-BACKLOG.md`. Plan: [DEVELOPMENT.md](DEVELOPMENT.md). How to land work: [DEVELOPMENT.md](DEVELOPMENT.md#process) — `feature/` / `fix/` branches, PRs to `master`, lint gate, semver on shipped PRs.
 
 ## High Priority
 
-None.
+- **Effects menu.** Increase/Decrease Volume, Increase/Decrease Speed, Add Echo, Reverse. The items exist and call `on_not_yet`. Operate on the WAV tape in the window (Win95 sndrec32). Insert File / Mix stays Low.
 
 ## Low Priority
 
-- Effects: volume, speed, reverse, echo (Win95 menus)
 - Insert File / Mix with File
 
 ## Out of Scope
