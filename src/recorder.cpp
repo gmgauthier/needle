@@ -329,6 +329,7 @@ bool Recorder::open_file(const std::string& path)
   probe_duration();
   set_state(RecState::stopped);
   signal_position_.emit(position_ns_, duration_ns_);
+  emit_tape_wave();
   return true;
 }
 
@@ -408,8 +409,19 @@ bool Recorder::apply_effect(TapeEffect fx)
   position_ns_ = 0;
   set_state(RecState::stopped);
   signal_position_.emit(position_ns_, duration_ns_);
-  signal_wave_.emit(pcm_envelope(pcm, 240));
+  emit_tape_wave();
   return true;
+}
+
+void Recorder::emit_tape_wave()
+{
+  if (path_.empty() || !Glib::file_test(path_, Glib::FILE_TEST_IS_REGULAR))
+    return;
+  TapePcm pcm;
+  std::string err;
+  if (!load_wav(path_, pcm, err))
+    return;
+  signal_wave_.emit(pcm_envelope(pcm, 240));
 }
 
 bool Recorder::record()
@@ -475,6 +487,8 @@ bool Recorder::stop()
     probe_duration();
     position_ns_ = 0;
     set_state(has_tape_ ? RecState::stopped : RecState::empty);
+    if (has_tape_)
+      emit_tape_wave();
   } else if (has_tape_) {
     set_state(RecState::stopped);
   } else {

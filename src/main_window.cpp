@@ -257,7 +257,6 @@ void MainWindow::on_open()
   if (rec_.open_file(dlg.get_filename())) {
     save_path_ = dlg.get_filename();
     remember_folder(save_path_);
-    wave_.clear();
   }
 }
 

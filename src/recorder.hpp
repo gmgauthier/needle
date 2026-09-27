@@ -96,6 +96,7 @@ class Recorder {
   void probe_duration();
   bool transcode(const std::string& desc, const std::string& in_path, const std::string& out_path,
                  const char* fail);
+  void emit_tape_wave();
 
   AudioDevice input_;
   GstElement* pipeline_ = nullptr;
