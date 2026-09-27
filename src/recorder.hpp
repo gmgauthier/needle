@@ -11,10 +11,13 @@
 #include <gst/gst.h>
 
 #include <string>
+#include <vector>
 
 namespace needle {
 
 enum class RecState { empty, stopped, recording, playing };
+
+enum class TapeEffect { vol_up, vol_down, speed_up, speed_down, echo, reverse };
 
 class Recorder {
  public:
@@ -59,6 +62,7 @@ class Recorder {
   bool play();
   bool stop();
   bool seek(gint64 ns);
+  bool apply_effect(TapeEffect fx);
 
   sigc::signal<void, RecState>& signal_state()
   {
@@ -75,6 +79,10 @@ class Recorder {
   sigc::signal<void, Glib::ustring>& signal_error()
   {
     return signal_error_;
+  }
+  sigc::signal<void, std::vector<double>>& signal_wave()
+  {
+    return signal_wave_;
   }
 
  private:
@@ -103,6 +111,7 @@ class Recorder {
   sigc::signal<void, double> signal_level_;
   sigc::signal<void, gint64, gint64> signal_position_;
   sigc::signal<void, Glib::ustring> signal_error_;
+  sigc::signal<void, std::vector<double>> signal_wave_;
 };
 
 }  // namespace needle

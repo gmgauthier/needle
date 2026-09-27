@@ -26,7 +26,7 @@ Shares GStreamer with EarBlaster. GNOME Sound Recorder is a phone app — not th
 | File | Working tape is uncompressed **WAV**. Save As / Open: WAV, FLAC, Ogg Vorbis, MP3 |
 | Look | Small decorated window. Green waveform on black. Transport: seek-start, seek-end, Record, Stop, Play |
 | Network | None |
-| Never as v1 | Mixer, effects (echo/reverse/speed), clipboard audio, 60-second cap as a product |
+| Never as v1 | Mixer, clipboard audio, 60-second cap as a product |
 | Init | No systemd |
 | Brand | LCOS beige / navy. No Bryan’s seal. Mark is a green trace on navy |
 | License | The Unlicense |
@@ -46,7 +46,7 @@ File  Edit  Effects  Help
 ```
 
 File: New, Open…, Save, Save As…, Exit.  
-Edit / Effects: parked (Win95 had copy/paste and echo; not v1).  
+Effects: Increase/Decrease Volume, Increase/Decrease Speed, Add Echo, Reverse (this branch). Edit Copy/Paste stays parked.  
 Help: About Needle.
 
 ## 3. Architecture
@@ -86,11 +86,13 @@ Working tape stays **WAV**. Save As and Open grow formats that belong in a Sound
 | Ogg Vorbis | plugins-good `vorbisenc` | Lossy Save As / Open |
 | MP3 | plugins-ugly `lamemp3enc` (LAME) | Lossy Save As / Open |
 
-File → Save As filter list. Effects still parked. EarBlaster remains the player. **Shipped in v0.3.0.**
+File → Save As filter list. EarBlaster remains the player. **Shipped in v0.3.0.**
+
+Effects menu (volume ±25%, speed ×2 / ×½ with pitch, echo, reverse) is **this branch**.
 
 ## 5. Parked
 
-Effects (volume / speed / reverse / echo). Insert File. Mix.
+Insert File. Mix. Edit Copy / Paste.
 
 ## 6. Traps
 

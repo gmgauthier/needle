@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: Unlicense */
 
 #include "recorder.hpp"
+#include "tape_pcm.hpp"
 #include "paths.hpp"
 
 #include <glib/gstdio.h>
@@ -356,6 +357,58 @@ bool Recorder::save_as(const std::string& path)
   if (!ok)
     return false;
   dirty_ = false;
+  return true;
+}
+
+bool Recorder::apply_effect(TapeEffect fx)
+{
+  stop();
+  if (!has_tape_ || path_.empty() || !Glib::file_test(path_, Glib::FILE_TEST_IS_REGULAR)) {
+    signal_error_.emit("No sound to process.");
+    return false;
+  }
+  TapePcm pcm;
+  std::string err;
+  if (!load_wav(path_, pcm, err)) {
+    signal_error_.emit(err);
+    return false;
+  }
+  switch (fx) {
+    case TapeEffect::vol_up:
+      fx_volume(pcm, 1.25f);
+      break;
+    case TapeEffect::vol_down:
+      fx_volume(pcm, 0.75f);
+      break;
+    case TapeEffect::speed_up:
+      fx_speed(pcm, 2.f);
+      break;
+    case TapeEffect::speed_down:
+      fx_speed(pcm, 0.5f);
+      break;
+    case TapeEffect::echo:
+      fx_echo(pcm);
+      break;
+    case TapeEffect::reverse:
+      fx_reverse(pcm);
+      break;
+  }
+  const std::string tmp = path_ + ".fx";
+  if (!save_wav(tmp, pcm, err)) {
+    signal_error_.emit(err);
+    return false;
+  }
+  if (g_rename(tmp.c_str(), path_.c_str()) != 0) {
+    g_unlink(tmp.c_str());
+    signal_error_.emit("Could not replace tape");
+    return false;
+  }
+  dirty_ = true;
+  probe_duration();
+  position_ns_ = 0;
+  set_state(RecState::stopped);
+  signal_position_.emit(position_ns_, duration_ns_);
+  signal_wave_.emit(pcm_envelope(pcm, 240));
   return true;
 }
 

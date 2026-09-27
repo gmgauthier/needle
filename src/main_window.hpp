@@ -27,6 +27,8 @@ class MainWindow : public Gtk::Window {
   void on_quit();
   void on_about();
   void on_not_yet(const Glib::ustring& feature);
+  void on_effect(TapeEffect fx);
+  void on_wave(const std::vector<double>& env);
   void on_seek_start();
   void on_seek_end();
   bool on_slider_press(GdkEventButton* event);

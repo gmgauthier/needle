@@ -6,7 +6,7 @@ Windows 95 Sound Recorder. Binary `needle`. Suite catalog: `lcos-projects/PRODUC
 
 ## High Priority
 
-- **Effects menu.** Increase/Decrease Volume, Increase/Decrease Speed, Add Echo, Reverse. The items exist and call `on_not_yet`. Operate on the WAV tape in the window (Win95 sndrec32). Insert File / Mix stays Low.
+- **Effects menu** (this branch). Increase/Decrease Volume, Increase/Decrease Speed, Add Echo, Reverse on the WAV tape (Win95 sndrec32). Insert File / Mix stays Low.
 
 ## Low Priority
 

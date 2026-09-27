@@ -129,6 +129,7 @@ MainWindow::MainWindow()
   rec_.signal_level().connect(sigc::mem_fun(*this, &MainWindow::on_level));
   rec_.signal_position().connect(sigc::mem_fun(*this, &MainWindow::on_position));
   rec_.signal_error().connect(sigc::mem_fun(*this, &MainWindow::on_error));
+  rec_.signal_wave().connect(sigc::mem_fun(*this, &MainWindow::on_wave));
   mic_.signal_changed().connect(sigc::mem_fun(*this, &MainWindow::apply_selected_device));
 
   root_.pack_start(menubar_, Gtk::PACK_SHRINK);
@@ -198,17 +199,17 @@ void MainWindow::build_menu()
 
   auto* fx = Gtk::manage(new Gtk::Menu());
   add_item(*fx, "Increase Volume",
-           sigc::bind(sigc::mem_fun(*this, &MainWindow::on_not_yet), Glib::ustring("Effects")));
+           sigc::bind(sigc::mem_fun(*this, &MainWindow::on_effect), TapeEffect::vol_up));
   add_item(*fx, "Decrease Volume",
-           sigc::bind(sigc::mem_fun(*this, &MainWindow::on_not_yet), Glib::ustring("Effects")));
+           sigc::bind(sigc::mem_fun(*this, &MainWindow::on_effect), TapeEffect::vol_down));
   add_item(*fx, "Increase Speed",
-           sigc::bind(sigc::mem_fun(*this, &MainWindow::on_not_yet), Glib::ustring("Effects")));
+           sigc::bind(sigc::mem_fun(*this, &MainWindow::on_effect), TapeEffect::speed_up));
   add_item(*fx, "Decrease Speed",
-           sigc::bind(sigc::mem_fun(*this, &MainWindow::on_not_yet), Glib::ustring("Effects")));
+           sigc::bind(sigc::mem_fun(*this, &MainWindow::on_effect), TapeEffect::speed_down));
   add_item(*fx, "Add Echo",
-           sigc::bind(sigc::mem_fun(*this, &MainWindow::on_not_yet), Glib::ustring("Effects")));
+           sigc::bind(sigc::mem_fun(*this, &MainWindow::on_effect), TapeEffect::echo));
   add_item(*fx, "Reverse",
-           sigc::bind(sigc::mem_fun(*this, &MainWindow::on_not_yet), Glib::ustring("Effects")));
+           sigc::bind(sigc::mem_fun(*this, &MainWindow::on_effect), TapeEffect::reverse));
   add_menu("E_ffects", *fx);
 
   auto* help = Gtk::manage(new Gtk::Menu());
@@ -304,6 +305,18 @@ void MainWindow::on_about()
 void MainWindow::on_not_yet(const Glib::ustring& feature)
 {
   status_.set_text(feature + " is not in this version.");
+}
+
+void MainWindow::on_effect(TapeEffect fx)
+{
+  rec_.apply_effect(fx);
+}
+
+void MainWindow::on_wave(const std::vector<double>& env)
+{
+  wave_.clear();
+  for (double a : env)
+    wave_.push_level(a);
 }
 
 void MainWindow::on_seek_start()
