@@ -1,3 +1,10 @@
+needle (1.0.0-1) unstable; urgency=medium
+
+  * Effects menu: volume, speed, echo, reverse on the WAV tape.
+  * Rebuild the waveform envelope after Stop and Open so play stays in sync.
+
+ -- Greg Gauthier <gmgauthier@protonmail.com>  Sun, 27 Sep 2026 10:35:00 +0100
+
 needle (0.3.0-1) unstable; urgency=medium
 
   * M4: Save As / Open FLAC, Ogg Vorbis, and MP3. Tape stays WAV.

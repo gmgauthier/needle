@@ -1,12 +1,12 @@
 # Needle backlog
 
-Current release: **v0.3.0**. Last updated: 2026-09-27.
+Current release: **v1.0.0**. Last updated: 2026-09-27.
 
 Windows 95 Sound Recorder. Binary `needle`. Suite catalog: `lcos-projects/PRODUCT-BACKLOG.md`. Plan: [DEVELOPMENT.md](DEVELOPMENT.md). How to land work: [DEVELOPMENT.md](DEVELOPMENT.md#process) — `feature/` / `fix/` branches, PRs to `master`, lint gate, semver on shipped PRs.
 
 ## High Priority
 
-- **Effects menu** (this branch). Increase/Decrease Volume, Increase/Decrease Speed, Add Echo, Reverse on the WAV tape (Win95 sndrec32). Insert File / Mix stays Low.
+None.
 
 ## Low Priority
 
@@ -23,6 +23,8 @@ Windows 95 Sound Recorder. Binary `needle`. Suite catalog: `lcos-projects/PRODUC
 - GNOME Sound Recorder re-theme
 
 ## Shipped
+
+**v1.0.0** — Effects: Increase/Decrease Volume, Increase/Decrease Speed, Add Echo, Reverse. Waveform envelope rebuilt after Stop/Open so play stays in sync.
 
 **v0.3.0** — M4: Save As / Open FLAC, Ogg Vorbis, MP3. Tape stays WAV.
 

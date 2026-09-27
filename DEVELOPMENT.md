@@ -12,7 +12,7 @@ Shares GStreamer with EarBlaster. GNOME Sound Recorder is a phone app — not th
 
 ## Status (2026-09-26)
 
-**v0.3.0.** Window plus record / stop / play of a mono 44.1 kHz WAV. Microphone combo lists Pulse (then ALSA) inputs; empty list falls back to Default / Internal microphone. Seek slider and last folder. Save As / Open FLAC, Ogg Vorbis, MP3; tape stays WAV. Packaged.
+**v1.0.0.** Window plus record / stop / play of a mono 44.1 kHz WAV. Microphone combo lists Pulse (then ALSA) inputs; empty list falls back to Default / Internal microphone. Seek slider and last folder. Save As / Open FLAC, Ogg Vorbis, MP3; tape stays WAV. Effects: volume, speed, echo, reverse. Packaged.
 
 ## 1. Locked decisions
 
@@ -46,7 +46,7 @@ File  Edit  Effects  Help
 ```
 
 File: New, Open…, Save, Save As…, Exit.  
-Effects: Increase/Decrease Volume, Increase/Decrease Speed, Add Echo, Reverse (this branch). Edit Copy/Paste stays parked.  
+Effects: Increase/Decrease Volume, Increase/Decrease Speed, Add Echo, Reverse. Edit Copy/Paste stays parked.  
 Help: About Needle.
 
 ## 3. Architecture
@@ -88,7 +88,7 @@ Working tape stays **WAV**. Save As and Open grow formats that belong in a Sound
 
 File → Save As filter list. EarBlaster remains the player. **Shipped in v0.3.0.**
 
-Effects menu (volume ±25%, speed ×2 / ×½ with pitch, echo, reverse) is **this branch**.
+Effects menu (volume ±25%, speed ×2 / ×½ with pitch, echo, reverse) **shipped in v1.0.0**.
 
 ## 5. Parked
 
