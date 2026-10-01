@@ -66,3 +66,11 @@ install_data(
   rename: 'needle.svg',
   install_dir: get_option('datadir') / 'icons' / 'hicolor' / 'scalable' / 'apps',
 )
+
+needle_tests = executable(
+  'needle-tests',
+  'tests/test_tape.cpp',
+  'src/tape_pcm.cpp',
+  include_directories: inc,
+)
+test('tape', needle_tests)
