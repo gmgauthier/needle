@@ -1,6 +1,6 @@
 # Needle backlog
 
-Current release: **v1.0.0**. Last updated: 2026-09-27.
+Current release: **v1.0.1**. Last updated: 2026-10-01.
 
 Windows 95 Sound Recorder. Binary `needle`. Suite catalog: `lcos-projects/PRODUCT-BACKLOG.md`. Plan: [DEVELOPMENT.md](DEVELOPMENT.md). How to land work: [DEVELOPMENT.md](DEVELOPMENT.md#process) — `feature/` / `fix/` branches, PRs to `master`, lint gate, semver on shipped PRs.
 
@@ -23,6 +23,8 @@ None.
 - GNOME Sound Recorder re-theme
 
 ## Shipped
+
+**v1.0.1** — Headless meson test suite, and known defects recorded in BUG-BACKLOG.md.
 
 **v1.0.0** — Effects: Increase/Decrease Volume, Increase/Decrease Speed, Add Echo, Reverse. Waveform envelope rebuilt after Stop/Open so play stays in sync.
 
