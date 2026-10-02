@@ -4,7 +4,9 @@
 #include "check.hpp"
 
 #include <cmath>
+#include <cstdint>
 #include <cstdlib>
+#include <fstream>
 #include <string>
 #include <unistd.h>
 #include <vector>
@@ -25,6 +27,23 @@ needle::TapePcm tone()
   for (int i = 0; i < 100; ++i)
     pcm.samples[static_cast<size_t>(i)] = (i < 50) ? 0.5f : -0.25f;
   return pcm;
+}
+
+void put_u32(std::vector<uint8_t>& b, uint32_t v)
+{
+  for (int i = 0; i < 4; ++i)
+    b.push_back(static_cast<uint8_t>(v >> (8 * i)));
+}
+
+void put_tag(std::vector<uint8_t>& b, const char* tag)
+{
+  b.insert(b.end(), tag, tag + 4);
+}
+
+void write_bytes(const std::string& path, const std::vector<uint8_t>& b)
+{
+  std::ofstream out(path, std::ios::binary);
+  out.write(reinterpret_cast<const char*>(b.data()), static_cast<std::streamsize>(b.size()));
 }
 
 bool near(float a, float b)
@@ -129,6 +148,22 @@ int main()
     CHECK(loaded.samples.size() == pcm.samples.size());
     for (size_t i = 0; i < pcm.samples.size(); ++i)
       CHECK(near(loaded.samples[i], pcm.samples[i]));
+    std::remove(path.c_str());
+  }
+
+  {
+    // A pre-data chunk whose size wraps 8 + sz in 32 bits must not hang the scan.
+    std::vector<uint8_t> b;
+    put_tag(b, "RIFF");
+    put_u32(b, 4 + 8 + 8);
+    put_tag(b, "WAVE");
+    put_tag(b, "JUNK");
+    put_u32(b, 0xFFFFFFF8u);
+    put_u32(b, 0);
+    put_u32(b, 0);
+    write_bytes(path, b);
+    needle::TapePcm pcm;
+    CHECK(!needle::load_wav(path, pcm, err));
     std::remove(path.c_str());
   }
 

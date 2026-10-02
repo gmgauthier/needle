@@ -1,3 +1,9 @@
+needle (1.0.2-1) unstable; urgency=medium
+
+  * Fix a hang on WAV chunk sizes near 4 GiB; the chunk scan no longer wraps.
+
+ -- Greg Gauthier <gmgauthier@protonmail.com>  Fri, 02 Oct 2026 10:24:03 +0100
+
 needle (1.0.1-1) unstable; urgency=medium
 
   * Add a headless meson test suite and record known defects in BUG-BACKLOG.md.

@@ -80,9 +80,11 @@ bool load_wav(const std::string& path, TapePcm& out, std::string& err)
       data_len = sz;
       break;
     }
-    i += 8 + sz;
-    if (sz & 1)
-      ++i;
+    // Advance in size_t: 8 + sz wraps in 32 bits for sizes near 4 GiB.
+    const size_t step = 8 + static_cast<size_t>(sz) + (sz & 1u);
+    if (step > buf.size() - i)
+      break;
+    i += step;
   }
   if (!data_off || channels < 1 || rate < 1 || data_off >= buf.size()) {
     err = "WAVE header is incomplete";
