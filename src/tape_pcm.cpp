@@ -134,6 +134,19 @@ bool load_wav(const std::string& path, TapePcm& out, std::string& err)
   return true;
 }
 
+bool wav_data_bytes(size_t frames, int channels, uint32_t& bytes)
+{
+  if (channels < 1)
+    return false;
+  // The RIFF size is 36 + data and must also fit in 32 bits.
+  const uint64_t limit = (0xFFFFFFFFull - 36) / 2;
+  const uint64_t ch = static_cast<uint64_t>(channels);
+  if (frames > limit / ch)
+    return false;
+  bytes = static_cast<uint32_t>(static_cast<uint64_t>(frames) * ch * 2);
+  return true;
+}
+
 bool save_wav(const std::string& path, const TapePcm& pcm, std::string& err)
 {
   if (pcm.channels < 1 || pcm.rate < 1) {
@@ -142,7 +155,11 @@ bool save_wav(const std::string& path, const TapePcm& pcm, std::string& err)
   }
   const int ch = pcm.channels;
   const size_t frames = pcm.samples.size() / static_cast<size_t>(ch);
-  const uint32_t data_bytes = static_cast<uint32_t>(frames * static_cast<size_t>(ch) * 2);
+  uint32_t data_bytes = 0;
+  if (!wav_data_bytes(frames, ch, data_bytes)) {
+    err = "Sound is too long for a WAV tape";
+    return false;
+  }
   std::vector<uint8_t> b;
   b.reserve(44 + data_bytes);
   b.insert(b.end(), {'R', 'I', 'F', 'F'});

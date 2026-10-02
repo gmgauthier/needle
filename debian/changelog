@@ -1,3 +1,9 @@
+needle (1.0.5-1) unstable; urgency=medium
+
+  * An Effect on a tape too long for a 16-bit WAV header now fails with an error and keeps the tape.
+
+ -- Greg Gauthier <gmgauthier@protonmail.com>  Fri, 02 Oct 2026 10:33:07 +0100
+
 needle (1.0.4-1) unstable; urgency=medium
 
   * Non-WAV Open and compressed Save As write a side file and replace the destination only on success.

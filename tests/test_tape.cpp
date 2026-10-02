@@ -167,5 +167,21 @@ int main()
     std::remove(path.c_str());
   }
 
+  {
+    // 16-bit PCM sizes that do not fit the RIFF header must be refused, not wrapped.
+    uint32_t bytes = 0;
+    CHECK(needle::wav_data_bytes(100, 1, bytes));
+    CHECK(bytes == 200);
+    CHECK(needle::wav_data_bytes(100, 2, bytes));
+    CHECK(bytes == 400);
+    const size_t max_samples = (0xFFFFFFFFull - 36) / 2;
+    CHECK(needle::wav_data_bytes(max_samples, 1, bytes));
+    CHECK(bytes == max_samples * 2);
+    CHECK(!needle::wav_data_bytes(max_samples + 1, 1, bytes));
+    CHECK(!needle::wav_data_bytes(0x80000000ull, 1, bytes));
+    CHECK(!needle::wav_data_bytes(0x40000000ull, 2, bytes));
+    CHECK(!needle::wav_data_bytes(10, 0, bytes));
+  }
+
   return suite_test::done("tape");
 }

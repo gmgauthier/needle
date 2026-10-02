@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <cstddef>
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -14,6 +16,8 @@ struct TapePcm {
 };
 
 bool load_wav(const std::string& path, TapePcm& out, std::string& err);
+// 16-bit PCM data size for frames x channels. False when the RIFF header cannot hold it.
+bool wav_data_bytes(size_t frames, int channels, uint32_t& bytes);
 bool save_wav(const std::string& path, const TapePcm& pcm, std::string& err);
 
 void fx_volume(TapePcm& pcm, float gain);
