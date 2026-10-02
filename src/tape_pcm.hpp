@@ -25,6 +25,8 @@ void fx_speed(TapePcm& pcm, float factor);
 void fx_echo(TapePcm& pcm);
 void fx_reverse(TapePcm& pcm);
 
+// Absolute peak of n samples, clipped to 1. The live record meter and pcm_envelope share it.
+double peak_level(const float* samples, size_t n);
 std::vector<double> pcm_envelope(const TapePcm& pcm, int buckets);
 
 }  // namespace needle

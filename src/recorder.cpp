@@ -202,12 +202,7 @@ void Recorder::pull_wave()
     GstMapInfo map;
     if (buf && gst_buffer_map(buf, &map, GST_MAP_READ) && map.size >= sizeof(float)) {
       const auto* f = reinterpret_cast<const float*>(map.data);
-      const size_t n = map.size / sizeof(float);
-      for (size_t i = 0; i < n; ++i) {
-        const double a = std::fabs(static_cast<double>(f[i]));
-        if (a > peak)
-          peak = a;
-      }
+      peak = std::max(peak, peak_level(f, map.size / sizeof(float)));
       gst_buffer_unmap(buf, &map);
       any = true;
     }
@@ -215,7 +210,8 @@ void Recorder::pull_wave()
   }
   gst_object_unref(el);
   if (any)
-    signal_level_.emit(std::min(1.0, peak * 2.5));
+    // Same scale as the envelope drawn after Stop: absolute peak, full scale = 1.
+    signal_level_.emit(peak);
 }
 
 bool Recorder::on_tick()

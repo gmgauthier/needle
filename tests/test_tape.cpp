@@ -382,5 +382,18 @@ int main()
     }
   }
 
+  {
+    // The live record meter uses the same absolute-peak scale as the envelope after Stop.
+    const std::vector<float> loud = {0.1f, -0.4f, 0.3f, 0.2f};
+    CHECK(std::fabs(needle::peak_level(loud.data(), loud.size()) - 0.4) < 1e-6);
+    needle::TapePcm pcm;
+    pcm.samples = loud;
+    const auto env = needle::pcm_envelope(pcm, 1);
+    CHECK(std::fabs(needle::peak_level(loud.data(), loud.size()) - env[0]) < 1e-6);
+    const std::vector<float> hot = {0.9f, -1.5f};
+    CHECK(needle::peak_level(hot.data(), hot.size()) == 1.0);
+    CHECK(needle::peak_level(nullptr, 0) == 0.0);
+  }
+
   return suite_test::done("tape");
 }

@@ -6,13 +6,7 @@ Reviewed 2026-10-01 against the 1.0.0 sources.
 
 ## Open
 
-### Record meter is scaled by 2.5 and then clipped
-
-- Severity: incorrect
-- Confidence: high
-- Where: `src/recorder.cpp:211`
-- Trigger: Record anything whose float peak is above 0.4. Stop, which rebuilds the envelope with `pcm_envelope` (absolute peak, no 2.5).
-- Outcome: The live trace pins at full scale while the samples on disk are still at 0.4. After Stop the same audio is drawn at less than half that height. Real clipping and merely loud input look the same during the take.
+None.
 
 ## Closed
 
@@ -96,3 +90,12 @@ Reviewed 2026-10-01 against the 1.0.0 sources.
 - Trigger: Add Echo. Delay is `rate / 10` frames (100 ms at 44.1 kHz, at least 1 frame).
 - Outcome: The mix is in place and the vector is not extended. A clip shorter than the delay is unchanged. On a longer clip the echo of the last delay interval is discarded instead of ringing out after the dry audio. Sums above full scale are hard-clipped.
 - Fixed: v1.0.10
+
+### Record meter is scaled by 2.5 and then clipped
+
+- Severity: incorrect
+- Confidence: high
+- Where: `src/recorder.cpp:211`
+- Trigger: Record anything whose float peak is above 0.4. Stop, which rebuilds the envelope with `pcm_envelope` (absolute peak, no 2.5).
+- Outcome: The live trace pins at full scale while the samples on disk are still at 0.4. After Stop the same audio is drawn at less than half that height. Real clipping and merely loud input look the same during the take.
+- Fixed: v1.0.11
