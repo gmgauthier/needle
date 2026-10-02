@@ -92,7 +92,7 @@ bool load_wav(const std::string& path, TapePcm& out, std::string& err)
       break;
     i += step;
   }
-  if (!data_off || channels < 1 || rate < 1 || data_off >= buf.size()) {
+  if (!data_off || channels < 1 || rate < 1 || data_off > buf.size()) {
     err = "WAVE header is incomplete";
     return false;
   }

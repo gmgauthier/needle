@@ -12,7 +12,7 @@ LCOS itself: [https://github.com/BryanLunduke/LCOS](https://github.com/BryanLund
 
 ## Status
 
-**v1.0.6.** Record, stop, and play a WAV; microphone combo; green level trace; seek slider; last folder. Save As / Open WAV, FLAC, Ogg Vorbis, MP3 (tape stays WAV). Effects: volume, speed, echo, reverse. Headless test suite and BUG-BACKLOG.md. See [INSTALL.md](INSTALL.md) and [DEVELOPMENT.md](DEVELOPMENT.md).
+**v1.0.7.** Record, stop, and play a WAV; microphone combo; green level trace; seek slider; last folder. Save As / Open WAV, FLAC, Ogg Vorbis, MP3 (tape stays WAV). Effects: volume, speed, echo, reverse. Headless test suite and BUG-BACKLOG.md. See [INSTALL.md](INSTALL.md) and [DEVELOPMENT.md](DEVELOPMENT.md).
 
 | Doc | What |
 |---|---|

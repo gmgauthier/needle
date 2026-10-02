@@ -1,6 +1,6 @@
 # Needle backlog
 
-Current release: **v1.0.6**. Last updated: 2026-10-02.
+Current release: **v1.0.7**. Last updated: 2026-10-02.
 
 Windows 95 Sound Recorder. Binary `needle`. Suite catalog: `lcos-projects/PRODUCT-BACKLOG.md`. Plan: [DEVELOPMENT.md](DEVELOPMENT.md). How to land work: [DEVELOPMENT.md](DEVELOPMENT.md#process) — `feature/` / `fix/` branches, PRs to `master`, lint gate, semver on shipped PRs.
 
@@ -23,6 +23,8 @@ None.
 - GNOME Sound Recorder re-theme
 
 ## Shipped
+
+**v1.0.7** — Fix: an empty WAV with a zero-length data chunk at EOF loads, so the writer's own empty tape round-trips.
 
 **v1.0.6** — Fix: Effects and the envelope accept WAVE_FORMAT_EXTENSIBLE WAVs (PCM and float SubFormats).
 
