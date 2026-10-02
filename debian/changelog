@@ -1,3 +1,9 @@
+needle (1.0.11-1) unstable; urgency=medium
+
+  * The live record meter uses the same absolute-peak scale as the envelope after Stop.
+
+ -- Greg Gauthier <gmgauthier@protonmail.com>  Fri, 02 Oct 2026 10:49:01 +0100
+
 needle (1.0.10-1) unstable; urgency=medium
 
   * Add Echo extends the tape by one delay so the echo rings out after the dry audio.

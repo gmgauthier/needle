@@ -281,6 +281,14 @@ void fx_reverse(TapePcm& pcm)
   }
 }
 
+double peak_level(const float* samples, size_t n)
+{
+  double peak = 0.0;
+  for (size_t i = 0; i < n; ++i)
+    peak = std::max(peak, std::fabs(static_cast<double>(samples[i])));
+  return std::min(1.0, peak);
+}
+
 std::vector<double> pcm_envelope(const TapePcm& pcm, int buckets)
 {
   std::vector<double> env(static_cast<size_t>(std::max(1, buckets)), 0.0);
@@ -290,13 +298,11 @@ std::vector<double> pcm_envelope(const TapePcm& pcm, int buckets)
     return env;
   const size_t n = env.size();
   for (size_t i = 0; i < frames; ++i) {
-    float peak = 0.f;
-    for (int c = 0; c < ch; ++c)
-      peak = std::max(peak,
-                      std::fabs(pcm.samples[i * static_cast<size_t>(ch) + static_cast<size_t>(c)]));
+    const double peak =
+        peak_level(&pcm.samples[i * static_cast<size_t>(ch)], static_cast<size_t>(ch));
     const size_t b = i * n / frames;
     if (b < n)
-      env[b] = std::max(env[b], static_cast<double>(peak));
+      env[b] = std::max(env[b], peak);
   }
   return env;
 }
