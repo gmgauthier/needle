@@ -6,14 +6,6 @@ Reviewed 2026-10-01 against the 1.0.0 sources.
 
 ## Open
 
-### Record deletes the current tape before capture starts
-
-- Severity: data-loss
-- Confidence: high
-- Where: `src/recorder.cpp:432`
-- Trigger: A tape is already loaded or recorded. Press Rec. The source element fails to start (`GST_STATE_CHANGE_FAILURE`, or a later bus error after the unlink).
-- Outcome: `g_unlink` removes `~/.cache/needle/tape.wav` before `start_pipeline`. On a synchronous start failure `has_tape_` is left as it was, the old drawing stays up, and Play then fails. The unsaved take is gone. New, Open, and Quit ask first. Rec does not.
-
 ### Non-WAV open and compressed Save As truncate the destination before success
 
 - Severity: data-loss
@@ -88,3 +80,12 @@ Reviewed 2026-10-01 against the 1.0.0 sources.
 - Trigger: Open, or any Effect, on a WAV whose pre-`data` chunk size is `0xFFFFFFF8`. A few dozen bytes are enough: `RIFF`/`WAVE` plus a `JUNK` chunk of that size.
 - Outcome: `sz` is `uint32_t`, so `8 + sz` wraps to 0 in 32-bit arithmetic before it is added to the `size_t` cursor. The scan loop never advances. `load_wav` does not return. `emit_tape_wave` and `apply_effect` call it on the GTK thread, so the window freezes.
 - Fixed: v1.0.2
+
+### Record deletes the current tape before capture starts
+
+- Severity: data-loss
+- Confidence: high
+- Where: `src/recorder.cpp:432`
+- Trigger: A tape is already loaded or recorded. Press Rec. The source element fails to start (`GST_STATE_CHANGE_FAILURE`, or a later bus error after the unlink).
+- Outcome: `g_unlink` removes `~/.cache/needle/tape.wav` before `start_pipeline`. On a synchronous start failure `has_tape_` is left as it was, the old drawing stays up, and Play then fails. The unsaved take is gone. New, Open, and Quit ask first. Rec does not.
+- Fixed: v1.0.3

@@ -1,6 +1,6 @@
 # Needle backlog
 
-Current release: **v1.0.2**. Last updated: 2026-10-02.
+Current release: **v1.0.3**. Last updated: 2026-10-02.
 
 Windows 95 Sound Recorder. Binary `needle`. Suite catalog: `lcos-projects/PRODUCT-BACKLOG.md`. Plan: [DEVELOPMENT.md](DEVELOPMENT.md). How to land work: [DEVELOPMENT.md](DEVELOPMENT.md#process) — `feature/` / `fix/` branches, PRs to `master`, lint gate, semver on shipped PRs.
 
@@ -23,6 +23,8 @@ None.
 - GNOME Sound Recorder re-theme
 
 ## Shipped
+
+**v1.0.3** — Fix: Rec no longer deletes the current tape when capture fails to start.
 
 **v1.0.2** — Fix: a WAV chunk size near 4 GiB no longer hangs the UI.
 

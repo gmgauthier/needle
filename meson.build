@@ -1,7 +1,7 @@
 project(
   'needle',
   'cpp',
-  version: '1.0.2',
+  version: '1.0.3',
   license: 'Unlicense',
   meson_version: '>=0.56',
   default_options: [
@@ -74,3 +74,14 @@ needle_tests = executable(
   include_directories: inc,
 )
 test('tape', needle_tests)
+
+recorder_tests = executable(
+  'needle-recorder-tests',
+  'tests/test_recorder.cpp',
+  'src/recorder.cpp',
+  'src/paths.cpp',
+  'src/tape_pcm.cpp',
+  include_directories: inc,
+  dependencies: [gtkmm, gst, gst_app],
+)
+test('recorder', recorder_tests)
