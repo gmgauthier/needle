@@ -190,7 +190,8 @@ bool save_wav(const std::string& path, const TapePcm& pcm, std::string& err)
   wu32(b, data_bytes);
   for (size_t i = 0; i < frames * static_cast<size_t>(ch); ++i) {
     float s = clamp1(i < pcm.samples.size() ? pcm.samples[i] : 0.f);
-    int v = static_cast<int>(std::lround(s * 32767.f));
+    // Same full scale as load_wav (32768) so 16-bit values round-trip; +1.0 clamps to 32767.
+    int v = static_cast<int>(std::lround(s * 32768.f));
     if (v > 32767)
       v = 32767;
     if (v < -32768)

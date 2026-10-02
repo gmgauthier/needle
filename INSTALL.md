@@ -9,7 +9,7 @@ Four ways to get a binary, in the order LCOS cares about:
 | **AppImage** | Fallback for distros that do not install `.deb` files. |
 | **Git build** | Developers. See below. |
 
-Version comes from `meson.build` (currently `1.0.8`).
+Version comes from `meson.build` (currently `1.0.9`).
 
 ## Runtime needs
 
@@ -24,14 +24,14 @@ sudo apt install libgtkmm-3.0-1t64 gstreamer1.0-plugins-base \
 ## 1. Debian package (preferred)
 
 ```
-sudo apt install ./dist/needle_1.0.8-1_amd64.deb
+sudo apt install ./dist/needle_1.0.9-1_amd64.deb
 ```
 
 Or, from this tree:
 
 ```
 ./scripts/release.sh deb
-sudo apt install ./dist/needle_1.0.8-1_amd64.deb
+sudo apt install ./dist/needle_1.0.9-1_amd64.deb
 ```
 
 Uninstall: `sudo apt remove needle`.
@@ -39,8 +39,8 @@ Uninstall: `sudo apt remove needle`.
 ## 2. Source tarball
 
 ```
-tar -xf needle-1.0.8.tar.xz
-cd needle-1.0.8
+tar -xf needle-1.0.9.tar.xz
+cd needle-1.0.9
 sudo apt install build-essential meson ninja-build pkg-config \
   libgtkmm-3.0-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
 meson setup build --prefix=/usr

@@ -6,14 +6,6 @@ Reviewed 2026-10-01 against the 1.0.0 sources.
 
 ## Open
 
-### 16-bit load and save use different full-scale divisors
-
-- Severity: incorrect
-- Confidence: high
-- Where: `src/tape_pcm.cpp:116`, `src/tape_pcm.cpp:160`
-- Trigger: Any Effect. `apply_effect` rewrites the tape through `save_wav`.
-- Outcome: Load divides by 32768. Save multiplies by 32767 and rounds. Full-scale 32767 is written back as 32766. −32768 is written back as −32767. Each Effect nudges the peaks down another LSB.
-
 ### Echo never appends a tail
 
 - Severity: incorrect
@@ -94,3 +86,12 @@ Reviewed 2026-10-01 against the 1.0.0 sources.
 - Trigger: PCM whose container stride is wider than the packed width. Format tag 1, 24-bit, `nBlockAlign` 4, one pad byte per frame.
 - Outcome: The stride is computed as `(bps / 8) * channels` and the header's block align is never read. Frames are stepped 3 bytes at a time, so the pad is consumed as audio. An Effect then saves that garbage as 16-bit and replaces the tape. Packed 24-bit (`align` 3) decodes correctly.
 - Fixed: v1.0.8
+
+### 16-bit load and save use different full-scale divisors
+
+- Severity: incorrect
+- Confidence: high
+- Where: `src/tape_pcm.cpp:116`, `src/tape_pcm.cpp:160`
+- Trigger: Any Effect. `apply_effect` rewrites the tape through `save_wav`.
+- Outcome: Load divides by 32768. Save multiplies by 32767 and rounds. Full-scale 32767 is written back as 32766. −32768 is written back as −32767. Each Effect nudges the peaks down another LSB.
+- Fixed: v1.0.9
