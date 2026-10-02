@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
+#include <iterator>
 #include <string>
 #include <unistd.h>
 #include <vector>
@@ -322,6 +323,28 @@ int main()
     if (pcm.samples.size() == 2) {
       CHECK(near(pcm.samples[0], 0.5f));
       CHECK(near(pcm.samples[1], -0.5f));
+    }
+    std::remove(path.c_str());
+  }
+
+  {
+    // Load then save of 16-bit PCM must give back the same sample values, peaks included.
+    const std::vector<int16_t> values = {32767, -32768, 1, -1, 0, 12345, -23456};
+    std::vector<uint8_t> payload;
+    for (int16_t v : values)
+      put_u16(payload, static_cast<uint16_t>(v));
+    write_bytes(path, plain_wav(1, 16, 1, 2, payload));
+    needle::TapePcm pcm;
+    CHECK(needle::load_wav(path, pcm, err));
+    CHECK(needle::save_wav(path, pcm, err));
+    std::ifstream in(path, std::ios::binary);
+    std::vector<uint8_t> out((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+    CHECK(out.size() == 44 + payload.size());
+    if (out.size() == 44 + payload.size()) {
+      for (size_t k = 0; k < values.size(); ++k) {
+        const int16_t got = static_cast<int16_t>(out[44 + 2 * k] | (out[45 + 2 * k] << 8));
+        CHECK(got == values[k]);
+      }
     }
     std::remove(path.c_str());
   }
