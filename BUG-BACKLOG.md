@@ -6,14 +6,6 @@ Reviewed 2026-10-01 against the 1.0.0 sources.
 
 ## Open
 
-### Decoder ignores nBlockAlign
-
-- Severity: incorrect
-- Confidence: high
-- Where: `src/tape_pcm.cpp:95`
-- Trigger: PCM whose container stride is wider than the packed width. Format tag 1, 24-bit, `nBlockAlign` 4, one pad byte per frame.
-- Outcome: The stride is computed as `(bps / 8) * channels` and the header's block align is never read. Frames are stepped 3 bytes at a time, so the pad is consumed as audio. An Effect then saves that garbage as 16-bit and replaces the tape. Packed 24-bit (`align` 3) decodes correctly.
-
 ### 16-bit load and save use different full-scale divisors
 
 - Severity: incorrect
@@ -93,3 +85,12 @@ Reviewed 2026-10-01 against the 1.0.0 sources.
 - Trigger: `save_wav` of a tape with no samples. The file is 44 bytes: `data` size 0, payload offset equal to the file size. The same layout as any other legal empty PCM WAV.
 - Outcome: The check `data_off >= buf.size()` fails, and `load_wav` reports "WAVE header is incomplete". The writer's own empty file does not round-trip. A following Effect or envelope rebuild no-ops.
 - Fixed: v1.0.7
+
+### Decoder ignores nBlockAlign
+
+- Severity: incorrect
+- Confidence: high
+- Where: `src/tape_pcm.cpp:95`
+- Trigger: PCM whose container stride is wider than the packed width. Format tag 1, 24-bit, `nBlockAlign` 4, one pad byte per frame.
+- Outcome: The stride is computed as `(bps / 8) * channels` and the header's block align is never read. Frames are stepped 3 bytes at a time, so the pad is consumed as audio. An Effect then saves that garbage as 16-bit and replaces the tape. Packed 24-bit (`align` 3) decodes correctly.
+- Fixed: v1.0.8

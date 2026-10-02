@@ -1,3 +1,9 @@
+needle (1.0.8-1) unstable; urgency=medium
+
+  * The tape decoder honours nBlockAlign, so padded PCM containers no longer decode pad bytes as audio.
+
+ -- Greg Gauthier <gmgauthier@protonmail.com>  Fri, 02 Oct 2026 10:40:34 +0100
+
 needle (1.0.7-1) unstable; urgency=medium
 
   * An empty WAV (zero-length data chunk at EOF) loads instead of reporting an incomplete header.
