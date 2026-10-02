@@ -349,5 +349,38 @@ int main()
     std::remove(path.c_str());
   }
 
+  {
+    // A clip shorter than the delay still gets its echo, after the dry audio.
+    needle::TapePcm pcm;
+    pcm.rate = 100;  // delay = 10 frames
+    pcm.channels = 1;
+    pcm.samples = {0.8f, 0.f, -0.4f};
+    needle::fx_echo(pcm);
+    CHECK(pcm.samples.size() == 13);
+    if (pcm.samples.size() == 13) {
+      CHECK(near(pcm.samples[0], 0.8f));
+      CHECK(near(pcm.samples[2], -0.4f));
+      CHECK(near(pcm.samples[5], 0.f));
+      CHECK(near(pcm.samples[10], 0.4f));
+      CHECK(near(pcm.samples[11], 0.f));
+      CHECK(near(pcm.samples[12], -0.2f));
+    }
+  }
+  {
+    // On a stereo clip the last delay interval rings out per channel.
+    needle::TapePcm pcm;
+    pcm.rate = 20;  // delay = 2 frames
+    pcm.channels = 2;
+    pcm.samples = {0.f, 0.f, 0.f, 0.f, 0.6f, -0.6f};
+    needle::fx_echo(pcm);
+    CHECK(pcm.samples.size() == 10);
+    if (pcm.samples.size() == 10) {
+      CHECK(near(pcm.samples[4], 0.6f));
+      CHECK(near(pcm.samples[5], -0.6f));
+      CHECK(near(pcm.samples[8], 0.3f));
+      CHECK(near(pcm.samples[9], -0.3f));
+    }
+  }
+
   return suite_test::done("tape");
 }

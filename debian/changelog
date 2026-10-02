@@ -1,3 +1,9 @@
+needle (1.0.10-1) unstable; urgency=medium
+
+  * Add Echo extends the tape by one delay so the echo rings out after the dry audio.
+
+ -- Greg Gauthier <gmgauthier@protonmail.com>  Fri, 02 Oct 2026 10:46:05 +0100
+
 needle (1.0.9-1) unstable; urgency=medium
 
   * 16-bit save uses the same 32768 full scale as load, so Effects no longer shave an LSB off the peaks.
