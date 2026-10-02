@@ -6,14 +6,6 @@ Reviewed 2026-10-01 against the 1.0.0 sources.
 
 ## Open
 
-### A zero-length data chunk at EOF is rejected
-
-- Severity: incorrect
-- Confidence: high
-- Where: `src/tape_pcm.cpp:87`
-- Trigger: `save_wav` of a tape with no samples. The file is 44 bytes: `data` size 0, payload offset equal to the file size. The same layout as any other legal empty PCM WAV.
-- Outcome: The check `data_off >= buf.size()` fails, and `load_wav` reports "WAVE header is incomplete". The writer's own empty file does not round-trip. A following Effect or envelope rebuild no-ops.
-
 ### Decoder ignores nBlockAlign
 
 - Severity: incorrect
@@ -92,3 +84,12 @@ Reviewed 2026-10-01 against the 1.0.0 sources.
 - Trigger: Open a 24-bit WAV written by current ffmpeg (`WAVE_FORMAT_EXTENSIBLE`, tag 65534). Open of `.wav` is a byte copy, so `wavparse` still plays it.
 - Outcome: `load_wav` accepts format tag 1 (PCM 8/16/24/32) and tag 3 (float 32) only. Anything else is "Unsupported WAVE format". `emit_tape_wave` returns without a signal. Effects refuse the file. The post-Open envelope is not drawn, so the view stays empty or keeps the previous take while the playhead tracks the new file.
 - Fixed: v1.0.6
+
+### A zero-length data chunk at EOF is rejected
+
+- Severity: incorrect
+- Confidence: high
+- Where: `src/tape_pcm.cpp:87`
+- Trigger: `save_wav` of a tape with no samples. The file is 44 bytes: `data` size 0, payload offset equal to the file size. The same layout as any other legal empty PCM WAV.
+- Outcome: The check `data_off >= buf.size()` fails, and `load_wav` reports "WAVE header is incomplete". The writer's own empty file does not round-trip. A following Effect or envelope rebuild no-ops.
+- Fixed: v1.0.7

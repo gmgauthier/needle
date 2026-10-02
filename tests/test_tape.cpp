@@ -260,5 +260,20 @@ int main()
     std::remove(path.c_str());
   }
 
+  {
+    // The writer's own empty tape (44 bytes, data size 0 at EOF) must round-trip.
+    needle::TapePcm empty;
+    empty.rate = 22050;
+    empty.channels = 2;
+    CHECK(needle::save_wav(path, empty, err));
+    needle::TapePcm loaded;
+    loaded.samples = {0.5f};
+    CHECK(needle::load_wav(path, loaded, err));
+    CHECK(loaded.rate == 22050);
+    CHECK(loaded.channels == 2);
+    CHECK(loaded.samples.empty());
+    std::remove(path.c_str());
+  }
+
   return suite_test::done("tape");
 }
