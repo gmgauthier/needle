@@ -6,6 +6,7 @@
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
+#include <cstring>
 #include <fstream>
 #include <string>
 #include <unistd.h>
@@ -35,9 +36,45 @@ void put_u32(std::vector<uint8_t>& b, uint32_t v)
     b.push_back(static_cast<uint8_t>(v >> (8 * i)));
 }
 
+void put_u16(std::vector<uint8_t>& b, uint16_t v)
+{
+  b.push_back(static_cast<uint8_t>(v));
+  b.push_back(static_cast<uint8_t>(v >> 8));
+}
+
 void put_tag(std::vector<uint8_t>& b, const char* tag)
 {
   b.insert(b.end(), tag, tag + 4);
+}
+
+// A WAV with a WAVE_FORMAT_EXTENSIBLE fmt chunk whose SubFormat GUID carries `sub`.
+std::vector<uint8_t> extensible_wav(uint16_t sub, uint16_t bits, uint16_t channels,
+                                    const std::vector<uint8_t>& payload)
+{
+  static const uint8_t guid_tail[14] = {0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x80,
+                                        0x00, 0x00, 0xAA, 0x00, 0x38, 0x9B, 0x71};
+  const uint16_t align = static_cast<uint16_t>(bits / 8 * channels);
+  std::vector<uint8_t> b;
+  put_tag(b, "RIFF");
+  put_u32(b, static_cast<uint32_t>(4 + 8 + 40 + 8 + payload.size()));
+  put_tag(b, "WAVE");
+  put_tag(b, "fmt ");
+  put_u32(b, 40);
+  put_u16(b, 0xFFFE);
+  put_u16(b, channels);
+  put_u32(b, 48000);
+  put_u32(b, 48000u * align);
+  put_u16(b, align);
+  put_u16(b, bits);
+  put_u16(b, 22);
+  put_u16(b, bits);
+  put_u32(b, channels == 2 ? 3u : 4u);
+  put_u16(b, sub);
+  b.insert(b.end(), guid_tail, guid_tail + 14);
+  put_tag(b, "data");
+  put_u32(b, static_cast<uint32_t>(payload.size()));
+  b.insert(b.end(), payload.begin(), payload.end());
+  return b;
 }
 
 void write_bytes(const std::string& path, const std::vector<uint8_t>& b)
@@ -181,6 +218,46 @@ int main()
     CHECK(!needle::wav_data_bytes(0x80000000ull, 1, bytes));
     CHECK(!needle::wav_data_bytes(0x40000000ull, 2, bytes));
     CHECK(!needle::wav_data_bytes(10, 0, bytes));
+  }
+
+  {
+    // ffmpeg writes 24-bit as WAVE_FORMAT_EXTENSIBLE with the PCM SubFormat.
+    // Stereo frames: (+0.5, -0.5), (-1.0, 0.25).
+    const std::vector<uint8_t> payload = {0x00, 0x00, 0x40, 0x00, 0x00, 0xC0,
+                                          0x00, 0x00, 0x80, 0x00, 0x00, 0x20};
+    write_bytes(path, extensible_wav(1, 24, 2, payload));
+    needle::TapePcm pcm;
+    CHECK(needle::load_wav(path, pcm, err));
+    CHECK(pcm.rate == 48000);
+    CHECK(pcm.channels == 2);
+    CHECK(pcm.samples.size() == 4);
+    if (pcm.samples.size() == 4) {
+      CHECK(near(pcm.samples[0], 0.5f));
+      CHECK(near(pcm.samples[1], -0.5f));
+      CHECK(near(pcm.samples[2], -1.f));
+      CHECK(near(pcm.samples[3], 0.25f));
+    }
+    std::remove(path.c_str());
+  }
+  {
+    // Extensible with the IEEE float SubFormat.
+    std::vector<uint8_t> payload;
+    const float v = -0.75f;
+    uint32_t u = 0;
+    std::memcpy(&u, &v, 4);
+    put_u32(payload, u);
+    write_bytes(path, extensible_wav(3, 32, 1, payload));
+    needle::TapePcm pcm;
+    CHECK(needle::load_wav(path, pcm, err));
+    CHECK(pcm.samples.size() == 1 && near(pcm.samples[0], -0.75f));
+    std::remove(path.c_str());
+  }
+  {
+    // An extensible SubFormat that is neither PCM nor float is still refused.
+    write_bytes(path, extensible_wav(2, 16, 1, {0, 0}));
+    needle::TapePcm pcm;
+    CHECK(!needle::load_wav(path, pcm, err));
+    std::remove(path.c_str());
   }
 
   return suite_test::done("tape");
