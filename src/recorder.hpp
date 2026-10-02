@@ -30,7 +30,8 @@ class Recorder {
   }
   bool dirty() const
   {
-    return dirty_;
+    // A take in progress is unsaved work even before Stop commits it.
+    return dirty_ || state_ == RecState::recording;
   }
   bool has_tape() const
   {
@@ -97,6 +98,7 @@ class Recorder {
   bool transcode(const std::string& desc, const std::string& in_path, const std::string& out_path,
                  const char* fail);
   void emit_tape_wave();
+  void discard_take();
 
   AudioDevice input_;
   GstElement* pipeline_ = nullptr;
@@ -105,6 +107,7 @@ class Recorder {
   bool dirty_ = false;
   bool has_tape_ = false;
   std::string path_;
+  std::string take_path_;
   gint64 position_ns_ = 0;
   gint64 duration_ns_ = 0;
   sigc::connection tick_;

@@ -1,3 +1,9 @@
+needle (1.0.3-1) unstable; urgency=medium
+
+  * Rec captures to a side file and replaces the tape only on Stop; a failed start keeps the current take.
+
+ -- Greg Gauthier <gmgauthier@protonmail.com>  Fri, 02 Oct 2026 10:28:07 +0100
+
 needle (1.0.2-1) unstable; urgency=medium
 
   * Fix a hang on WAV chunk sizes near 4 GiB; the chunk scan no longer wraps.

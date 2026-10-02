@@ -115,8 +115,13 @@ bool Recorder::start_pipeline(const std::string& desc, const char* sink_name,
     return false;
   }
   if (err) {
+    // A recoverable parse error (a missing element) leaves a pipeline that never starts.
+    Glib::ustring msg = err->message ? err->message : "Could not build pipeline";
     g_error_free(err);
-    err = nullptr;
+    gst_object_unref(pipeline_);
+    pipeline_ = nullptr;
+    signal_error_.emit(msg);
+    return false;
   }
   if (sink_name && !location.empty()) {
     GstElement* sink = gst_bin_get_by_name(GST_BIN(pipeline_), sink_name);
@@ -164,6 +169,8 @@ gboolean Recorder::on_bus(GstBus*, GstMessage* msg, gpointer data)
       if (err)
         g_error_free(err);
       self->tear_pipeline();
+      if (self->state_ == RecState::recording)
+        self->discard_take();
       self->set_state(self->has_tape_ ? RecState::stopped : RecState::empty);
       self->signal_error_.emit(text);
       break;
@@ -335,9 +342,9 @@ bool Recorder::open_file(const std::string& path)
 
 bool Recorder::save_as(const std::string& path)
 {
+  stop();
   if (!has_tape_)
     return false;
-  stop();
   const std::string ext = lower_ext(path);
   const char* desc = encode_desc(ext);
   bool ok = false;
@@ -424,13 +431,27 @@ void Recorder::emit_tape_wave()
   signal_wave_.emit(pcm_envelope(pcm, 240));
 }
 
+void Recorder::discard_take()
+{
+  // The take never replaced the tape: drop it and restore the tape's duration.
+  if (!take_path_.empty())
+    g_unlink(take_path_.c_str());
+  take_path_.clear();
+  position_ns_ = 0;
+  duration_ns_ = 0;
+  if (has_tape_)
+    probe_duration();
+}
+
 bool Recorder::record()
 {
   if (state_ == RecState::recording)
     return true;
   stop();
   path_ = tape_path();
-  g_unlink(path_.c_str());
+  // Capture into a side file. The current tape is replaced only when Stop commits the take.
+  take_path_ = path_ + ".rec";
+  g_unlink(take_path_.c_str());
   const char* src_el = "autoaudiosrc";
   if (input_.backend == AudioBackend::pulse && !input_.id.empty() && input_.id != "default")
     src_el = "pulsesrc";
@@ -444,10 +465,11 @@ bool Recorder::record()
       "t. ! queue leaky=downstream max-size-buffers=8 ! "
       "audioconvert ! audio/x-raw,format=F32LE,channels=1,layout=interleaved ! "
       "appsink name=wave sync=false max-buffers=8 drop=true";
-  if (!start_pipeline(desc, "fs", path_))
+  if (!start_pipeline(desc, "fs", take_path_)) {
+    g_unlink(take_path_.c_str());
+    take_path_.clear();
     return false;
-  has_tape_ = true;
-  dirty_ = true;
+  }
   position_ns_ = 0;
   duration_ns_ = 0;
   set_state(RecState::recording);
@@ -483,7 +505,14 @@ bool Recorder::stop()
     query_times();
   tear_pipeline();
   if (was == RecState::recording) {
-    has_tape_ = Glib::file_test(path_, Glib::FILE_TEST_IS_REGULAR);
+    if (!take_path_.empty() && Glib::file_test(take_path_, Glib::FILE_TEST_IS_REGULAR) &&
+        g_rename(take_path_.c_str(), path_.c_str()) == 0) {
+      has_tape_ = true;
+      dirty_ = true;
+    } else if (!take_path_.empty()) {
+      g_unlink(take_path_.c_str());
+    }
+    take_path_.clear();
     probe_duration();
     position_ns_ = 0;
     set_state(has_tape_ ? RecState::stopped : RecState::empty);
