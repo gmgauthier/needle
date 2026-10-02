@@ -267,19 +267,28 @@ bool Recorder::transcode(const std::string& desc, const std::string& in_path,
     return false;
   }
   if (err) {
+    // A missing element leaves a pipeline that would never post EOS.
+    Glib::ustring msg = err->message ? err->message : fail;
     g_error_free(err);
-    err = nullptr;
+    gst_object_unref(p);
+    signal_error_.emit(msg);
+    return false;
   }
+  // filesink truncates on open. Write a side file and rename it over out_path on success.
+  const std::string part = out_path + ".part";
+  g_unlink(part.c_str());
   if (GstElement* in = gst_bin_get_by_name(GST_BIN(p), "in")) {
     g_object_set(in, "location", in_path.c_str(), nullptr);
     gst_object_unref(in);
   }
   if (GstElement* out = gst_bin_get_by_name(GST_BIN(p), "out")) {
-    g_object_set(out, "location", out_path.c_str(), nullptr);
+    g_object_set(out, "location", part.c_str(), nullptr);
     gst_object_unref(out);
   }
   if (gst_element_set_state(p, GST_STATE_PLAYING) == GST_STATE_CHANGE_FAILURE) {
+    gst_element_set_state(p, GST_STATE_NULL);
     gst_object_unref(p);
+    g_unlink(part.c_str());
     signal_error_.emit(fail);
     return false;
   }
@@ -304,6 +313,12 @@ bool Recorder::transcode(const std::string& desc, const std::string& in_path,
   gst_object_unref(bus);
   gst_element_set_state(p, GST_STATE_NULL);
   gst_object_unref(p);
+  if (ok && g_rename(part.c_str(), out_path.c_str()) != 0) {
+    signal_error_.emit(fail);
+    ok = false;
+  }
+  if (!ok)
+    g_unlink(part.c_str());
   return ok;
 }
 

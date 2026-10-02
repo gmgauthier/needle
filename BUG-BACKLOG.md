@@ -6,14 +6,6 @@ Reviewed 2026-10-01 against the 1.0.0 sources.
 
 ## Open
 
-### Non-WAV open and compressed Save As truncate the destination before success
-
-- Severity: data-loss
-- Confidence: high
-- Where: `src/recorder.cpp:274`
-- Trigger: Open a corrupt or undecodable FLAC, Ogg, or MP3 while a tape exists, or Save As over an existing compressed file and the encode errors.
-- Outcome: `filesink` `location` is set, then the pipeline is set to `PLAYING`. filesink truncates on open. Failure returns false only after that. On a failed Open the UI can still show the previous take while the cache file is partial. WAV Save As uses `g_file_set_contents` and is not this path.
-
 ### Effect rewrite wraps WAV sizes past 4 GiB
 
 - Severity: data-loss
@@ -89,3 +81,12 @@ Reviewed 2026-10-01 against the 1.0.0 sources.
 - Trigger: A tape is already loaded or recorded. Press Rec. The source element fails to start (`GST_STATE_CHANGE_FAILURE`, or a later bus error after the unlink).
 - Outcome: `g_unlink` removes `~/.cache/needle/tape.wav` before `start_pipeline`. On a synchronous start failure `has_tape_` is left as it was, the old drawing stays up, and Play then fails. The unsaved take is gone. New, Open, and Quit ask first. Rec does not.
 - Fixed: v1.0.3
+
+### Non-WAV open and compressed Save As truncate the destination before success
+
+- Severity: data-loss
+- Confidence: high
+- Where: `src/recorder.cpp:274`
+- Trigger: Open a corrupt or undecodable FLAC, Ogg, or MP3 while a tape exists, or Save As over an existing compressed file and the encode errors.
+- Outcome: `filesink` `location` is set, then the pipeline is set to `PLAYING`. filesink truncates on open. Failure returns false only after that. On a failed Open the UI can still show the previous take while the cache file is partial. WAV Save As uses `g_file_set_contents` and is not this path.
+- Fixed: v1.0.4

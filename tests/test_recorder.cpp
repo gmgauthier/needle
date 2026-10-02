@@ -24,6 +24,12 @@ std::string slurp(const std::string& path)
   return std::string((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
 }
 
+void spit(const std::string& path, const std::string& bytes)
+{
+  std::ofstream out(path, std::ios::binary);
+  out << bytes;
+}
+
 needle::TapePcm tone()
 {
   needle::TapePcm pcm;
@@ -79,6 +85,46 @@ int main(int argc, char** argv)
     CHECK(rec.state() == needle::RecState::stopped);
     CHECK(!rec.dirty());
     CHECK(slurp(tape) == take_bytes);
+  }
+
+  {
+    // A failed non-WAV Open must not truncate the tape the window still shows.
+    needle::Recorder rec;
+    CHECK(rec.open_file(take));
+    const std::string tape = needle::tape_path();
+    const std::string bad_flac = dir + "/broken.flac";
+    spit(bad_flac, "fLaC this is not a decodable stream at all");
+    CHECK(!rec.open_file(bad_flac));
+    CHECK(rec.has_tape());
+    CHECK(slurp(tape) == take_bytes);
+  }
+
+  {
+    // A compressed Save As that fails must leave an existing destination alone.
+    const std::string junk_wav = dir + "/junk.wav";
+    spit(junk_wav, "RIFF0000WAVEnot really a wave file");
+    needle::Recorder rec;
+    CHECK(rec.open_file(junk_wav));
+    const std::string dest = dir + "/keep.flac";
+    const std::string keep = "previously saved flac bytes";
+    spit(dest, keep);
+    CHECK(!rec.save_as(dest));
+    CHECK(slurp(dest) == keep);
+    CHECK(!g_file_test((dest + ".part").c_str(), G_FILE_TEST_EXISTS));
+  }
+
+  if (GstElementFactory* enc = gst_element_factory_find("flacenc")) {
+    gst_object_unref(enc);
+    // A good compressed Save As lands at the destination, with no side file left.
+    needle::Recorder rec;
+    CHECK(rec.open_file(take));
+    const std::string dest = dir + "/good.flac";
+    spit(dest, "old");
+    CHECK(rec.save_as(dest));
+    CHECK(slurp(dest).rfind("fLaC", 0) == 0);
+    CHECK(!g_file_test((dest + ".part").c_str(), G_FILE_TEST_EXISTS));
+    CHECK(rec.open_file(dest));
+    CHECK(rec.has_tape());
   }
 
   return suite_test::done("recorder");

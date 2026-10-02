@@ -1,3 +1,9 @@
+needle (1.0.4-1) unstable; urgency=medium
+
+  * Non-WAV Open and compressed Save As write a side file and replace the destination only on success.
+
+ -- Greg Gauthier <gmgauthier@protonmail.com>  Fri, 02 Oct 2026 10:30:51 +0100
+
 needle (1.0.3-1) unstable; urgency=medium
 
   * Rec captures to a side file and replaces the tape only on Stop; a failed start keeps the current take.
