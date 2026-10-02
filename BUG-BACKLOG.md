@@ -6,14 +6,6 @@ Reviewed 2026-10-01 against the 1.0.0 sources.
 
 ## Open
 
-### Echo never appends a tail
-
-- Severity: incorrect
-- Confidence: high
-- Where: `src/tape_pcm.cpp:218`
-- Trigger: Add Echo. Delay is `rate / 10` frames (100 ms at 44.1 kHz, at least 1 frame).
-- Outcome: The mix is in place and the vector is not extended. A clip shorter than the delay is unchanged. On a longer clip the echo of the last delay interval is discarded instead of ringing out after the dry audio. Sums above full scale are hard-clipped.
-
 ### Record meter is scaled by 2.5 and then clipped
 
 - Severity: incorrect
@@ -95,3 +87,12 @@ Reviewed 2026-10-01 against the 1.0.0 sources.
 - Trigger: Any Effect. `apply_effect` rewrites the tape through `save_wav`.
 - Outcome: Load divides by 32768. Save multiplies by 32767 and rounds. Full-scale 32767 is written back as 32766. −32768 is written back as −32767. Each Effect nudges the peaks down another LSB.
 - Fixed: v1.0.9
+
+### Echo never appends a tail
+
+- Severity: incorrect
+- Confidence: high
+- Where: `src/tape_pcm.cpp:218`
+- Trigger: Add Echo. Delay is `rate / 10` frames (100 ms at 44.1 kHz, at least 1 frame).
+- Outcome: The mix is in place and the vector is not extended. A clip shorter than the delay is unchanged. On a longer clip the echo of the last delay interval is discarded instead of ringing out after the dry audio. Sums above full scale are hard-clipped.
+- Fixed: v1.0.10

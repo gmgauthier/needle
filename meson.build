@@ -1,7 +1,7 @@
 project(
   'needle',
   'cpp',
-  version: '1.0.9',
+  version: '1.0.10',
   license: 'Unlicense',
   meson_version: '>=0.56',
   default_options: [

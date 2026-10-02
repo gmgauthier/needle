@@ -252,12 +252,17 @@ void fx_echo(TapePcm& pcm)
   size_t delay = static_cast<size_t>(pcm.rate) / 10;
   if (delay < 1)
     delay = 1;
+  if (frames == 0)
+    return;
+  // Extend by one delay so the echo of the last interval rings out after the dry audio.
   const auto orig = pcm.samples;
-  for (size_t i = delay; i < frames; ++i) {
-    for (int c = 0; c < ch; ++c) {
-      const size_t di = i * static_cast<size_t>(ch) + static_cast<size_t>(c);
-      const size_t si = (i - delay) * static_cast<size_t>(ch) + static_cast<size_t>(c);
-      pcm.samples[di] = clamp1(orig[di] + 0.5f * orig[si]);
+  const size_t cs = static_cast<size_t>(ch);
+  pcm.samples.assign((frames + delay) * cs, 0.f);
+  for (size_t i = 0; i < frames + delay; ++i) {
+    for (size_t c = 0; c < cs; ++c) {
+      const float dry = i < frames ? orig[i * cs + c] : 0.f;
+      const float wet = i >= delay ? orig[(i - delay) * cs + c] : 0.f;
+      pcm.samples[i * cs + c] = clamp1(dry + 0.5f * wet);
     }
   }
 }
