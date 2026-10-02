@@ -47,6 +47,28 @@ void put_tag(std::vector<uint8_t>& b, const char* tag)
   b.insert(b.end(), tag, tag + 4);
 }
 
+// A plain WAV with an explicit nBlockAlign.
+std::vector<uint8_t> plain_wav(uint16_t tag, uint16_t bits, uint16_t channels, uint16_t align,
+                               const std::vector<uint8_t>& payload)
+{
+  std::vector<uint8_t> b;
+  put_tag(b, "RIFF");
+  put_u32(b, static_cast<uint32_t>(4 + 8 + 16 + 8 + payload.size()));
+  put_tag(b, "WAVE");
+  put_tag(b, "fmt ");
+  put_u32(b, 16);
+  put_u16(b, tag);
+  put_u16(b, channels);
+  put_u32(b, 8000);
+  put_u32(b, 8000u * align);
+  put_u16(b, align);
+  put_u16(b, bits);
+  put_tag(b, "data");
+  put_u32(b, static_cast<uint32_t>(payload.size()));
+  b.insert(b.end(), payload.begin(), payload.end());
+  return b;
+}
+
 // A WAV with a WAVE_FORMAT_EXTENSIBLE fmt chunk whose SubFormat GUID carries `sub`.
 std::vector<uint8_t> extensible_wav(uint16_t sub, uint16_t bits, uint16_t channels,
                                     const std::vector<uint8_t>& payload)
@@ -272,6 +294,35 @@ int main()
     CHECK(loaded.rate == 22050);
     CHECK(loaded.channels == 2);
     CHECK(loaded.samples.empty());
+    std::remove(path.c_str());
+  }
+
+  {
+    // 24-bit mono in a 4-byte container: nBlockAlign 4, one pad byte per frame.
+    const std::vector<uint8_t> payload = {0x00, 0x00, 0x40, 0xEE, 0x00, 0x00, 0xC0, 0xEE,
+                                          0x00, 0x00, 0x20, 0xEE};
+    write_bytes(path, plain_wav(1, 24, 1, 4, payload));
+    needle::TapePcm pcm;
+    CHECK(needle::load_wav(path, pcm, err));
+    CHECK(pcm.samples.size() == 3);
+    if (pcm.samples.size() == 3) {
+      CHECK(near(pcm.samples[0], 0.5f));
+      CHECK(near(pcm.samples[1], -0.5f));
+      CHECK(near(pcm.samples[2], 0.25f));
+    }
+    std::remove(path.c_str());
+  }
+  {
+    // Packed 24-bit (nBlockAlign 3) still decodes.
+    const std::vector<uint8_t> payload = {0x00, 0x00, 0x40, 0x00, 0x00, 0xC0};
+    write_bytes(path, plain_wav(1, 24, 1, 3, payload));
+    needle::TapePcm pcm;
+    CHECK(needle::load_wav(path, pcm, err));
+    CHECK(pcm.samples.size() == 2);
+    if (pcm.samples.size() == 2) {
+      CHECK(near(pcm.samples[0], 0.5f));
+      CHECK(near(pcm.samples[1], -0.5f));
+    }
     std::remove(path.c_str());
   }
 

@@ -65,6 +65,7 @@ bool load_wav(const std::string& path, TapePcm& out, std::string& err)
   uint16_t channels = 1;
   uint32_t rate = 44100;
   uint16_t bits = 16;
+  uint16_t align = 0;
   size_t data_off = 0;
   size_t data_len = 0;
   size_t i = 12;
@@ -74,6 +75,7 @@ bool load_wav(const std::string& path, TapePcm& out, std::string& err)
       format = ru16(buf.data() + i + 8);
       channels = ru16(buf.data() + i + 10);
       rate = ru32(buf.data() + i + 12);
+      align = ru16(buf.data() + i + 20);
       bits = ru16(buf.data() + i + 22);
       // WAVE_FORMAT_EXTENSIBLE: the real tag is the first two bytes of the SubFormat GUID.
       static const uint8_t guid_tail[14] = {0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x80,
@@ -100,11 +102,17 @@ bool load_wav(const std::string& path, TapePcm& out, std::string& err)
     data_len = buf.size() - data_off;
   const int ch = static_cast<int>(channels);
   const int bps = static_cast<int>(bits);
-  const int block = (bps / 8) * ch;
-  if (block <= 0) {
+  const int width = bps / 8;
+  if (width <= 0) {
     err = "Unsupported WAVE format";
     return false;
   }
+  // nBlockAlign is the frame stride. A container wider than the packed width pads each
+  // sample slot; the sample sits in the low bytes of its slot.
+  int slot = width;
+  if (align > 0 && align % ch == 0 && static_cast<int>(align) / ch >= width)
+    slot = static_cast<int>(align) / ch;
+  const int block = slot * ch;
   const size_t frames = data_len / static_cast<size_t>(block);
   out.rate = static_cast<int>(rate);
   out.channels = ch;
@@ -115,20 +123,20 @@ bool load_wav(const std::string& path, TapePcm& out, std::string& err)
     for (int c = 0; c < ch; ++c) {
       float s = 0.f;
       if (format == 3 && bps == 32) {
-        uint32_t u = ru32(fr + c * 4);
+        uint32_t u = ru32(fr + c * slot);
         std::memcpy(&s, &u, 4);
       } else if (format == 1 && bps == 8) {
-        s = (static_cast<int>(fr[c]) - 128) / 128.f;
+        s = (static_cast<int>(fr[c * slot]) - 128) / 128.f;
       } else if (format == 1 && bps == 16) {
-        const int16_t v = static_cast<int16_t>(ru16(fr + c * 2));
+        const int16_t v = static_cast<int16_t>(ru16(fr + c * slot));
         s = v / 32768.f;
       } else if (format == 1 && bps == 24) {
         const int32_t v =
-            static_cast<int32_t>(fr[c * 3] | (fr[c * 3 + 1] << 8) | (fr[c * 3 + 2] << 16));
+            static_cast<int32_t>(fr[c * slot] | (fr[c * slot + 1] << 8) | (fr[c * slot + 2] << 16));
         const int32_t signed24 = (v & 0x800000) ? (v | ~0xFFFFFF) : v;
         s = signed24 / 8388608.f;
       } else if (format == 1 && bps == 32) {
-        const int32_t v = static_cast<int32_t>(ru32(fr + c * 4));
+        const int32_t v = static_cast<int32_t>(ru32(fr + c * slot));
         s = v / 2147483648.f;
       } else {
         err = "Unsupported WAVE format";
