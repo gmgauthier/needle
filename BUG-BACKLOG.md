@@ -6,14 +6,6 @@ Reviewed 2026-10-01 against the 1.0.0 sources.
 
 ## Open
 
-### Effect rewrite wraps WAV sizes past 4 GiB
-
-- Severity: data-loss
-- Confidence: high
-- Where: `src/tape_pcm.cpp:143`, `src/tape_pcm.cpp:147`
-- Trigger: Any Effect on a tape whose 16-bit PCM payload does not fit in `uint32_t`. Mono 44.1 kHz crosses that at about 13.5 hours. Stereo crosses it at about half that. Record itself has no duration cap.
-- Outcome: `save_wav` stores `static_cast<uint32_t>(frames * channels * 2)` as the `data` chunk size and in the RIFF size, then writes every sample. `load_wav` trusts the `data` size, so the next Effect or envelope keeps only the wrapped prefix. Players that honor the header drop the rest.
-
 ### Extensible WAV plays, but effects and the envelope do not
 
 - Severity: incorrect
@@ -90,3 +82,12 @@ Reviewed 2026-10-01 against the 1.0.0 sources.
 - Trigger: Open a corrupt or undecodable FLAC, Ogg, or MP3 while a tape exists, or Save As over an existing compressed file and the encode errors.
 - Outcome: `filesink` `location` is set, then the pipeline is set to `PLAYING`. filesink truncates on open. Failure returns false only after that. On a failed Open the UI can still show the previous take while the cache file is partial. WAV Save As uses `g_file_set_contents` and is not this path.
 - Fixed: v1.0.4
+
+### Effect rewrite wraps WAV sizes past 4 GiB
+
+- Severity: data-loss
+- Confidence: high
+- Where: `src/tape_pcm.cpp:143`, `src/tape_pcm.cpp:147`
+- Trigger: Any Effect on a tape whose 16-bit PCM payload does not fit in `uint32_t`. Mono 44.1 kHz crosses that at about 13.5 hours. Stereo crosses it at about half that. Record itself has no duration cap.
+- Outcome: `save_wav` stores `static_cast<uint32_t>(frames * channels * 2)` as the `data` chunk size and in the RIFF size, then writes every sample. `load_wav` trusts the `data` size, so the next Effect or envelope keeps only the wrapped prefix. Players that honor the header drop the rest.
+- Fixed: v1.0.5
