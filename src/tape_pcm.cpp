@@ -75,6 +75,12 @@ bool load_wav(const std::string& path, TapePcm& out, std::string& err)
       channels = ru16(buf.data() + i + 10);
       rate = ru32(buf.data() + i + 12);
       bits = ru16(buf.data() + i + 22);
+      // WAVE_FORMAT_EXTENSIBLE: the real tag is the first two bytes of the SubFormat GUID.
+      static const uint8_t guid_tail[14] = {0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x80,
+                                            0x00, 0x00, 0xAA, 0x00, 0x38, 0x9B, 0x71};
+      if (format == 0xFFFE && sz >= 40 && i + 8 + 40 <= buf.size() &&
+          std::memcmp(buf.data() + i + 8 + 26, guid_tail, sizeof guid_tail) == 0)
+        format = ru16(buf.data() + i + 8 + 24);
     } else if (std::memcmp(buf.data() + i, "data", 4) == 0) {
       data_off = i + 8;
       data_len = sz;

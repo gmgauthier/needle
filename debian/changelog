@@ -1,3 +1,9 @@
+needle (1.0.6-1) unstable; urgency=medium
+
+  * Effects and the envelope read WAVE_FORMAT_EXTENSIBLE PCM and float WAVs.
+
+ -- Greg Gauthier <gmgauthier@protonmail.com>  Fri, 02 Oct 2026 10:35:30 +0100
+
 needle (1.0.5-1) unstable; urgency=medium
 
   * An Effect on a tape too long for a 16-bit WAV header now fails with an error and keeps the tape.

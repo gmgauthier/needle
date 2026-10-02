@@ -6,14 +6,6 @@ Reviewed 2026-10-01 against the 1.0.0 sources.
 
 ## Open
 
-### Extensible WAV plays, but effects and the envelope do not
-
-- Severity: incorrect
-- Confidence: high
-- Where: `src/tape_pcm.cpp:125`, `src/recorder.cpp:422`
-- Trigger: Open a 24-bit WAV written by current ffmpeg (`WAVE_FORMAT_EXTENSIBLE`, tag 65534). Open of `.wav` is a byte copy, so `wavparse` still plays it.
-- Outcome: `load_wav` accepts format tag 1 (PCM 8/16/24/32) and tag 3 (float 32) only. Anything else is "Unsupported WAVE format". `emit_tape_wave` returns without a signal. Effects refuse the file. The post-Open envelope is not drawn, so the view stays empty or keeps the previous take while the playhead tracks the new file.
-
 ### A zero-length data chunk at EOF is rejected
 
 - Severity: incorrect
@@ -91,3 +83,12 @@ Reviewed 2026-10-01 against the 1.0.0 sources.
 - Trigger: Any Effect on a tape whose 16-bit PCM payload does not fit in `uint32_t`. Mono 44.1 kHz crosses that at about 13.5 hours. Stereo crosses it at about half that. Record itself has no duration cap.
 - Outcome: `save_wav` stores `static_cast<uint32_t>(frames * channels * 2)` as the `data` chunk size and in the RIFF size, then writes every sample. `load_wav` trusts the `data` size, so the next Effect or envelope keeps only the wrapped prefix. Players that honor the header drop the rest.
 - Fixed: v1.0.5
+
+### Extensible WAV plays, but effects and the envelope do not
+
+- Severity: incorrect
+- Confidence: high
+- Where: `src/tape_pcm.cpp:125`, `src/recorder.cpp:422`
+- Trigger: Open a 24-bit WAV written by current ffmpeg (`WAVE_FORMAT_EXTENSIBLE`, tag 65534). Open of `.wav` is a byte copy, so `wavparse` still plays it.
+- Outcome: `load_wav` accepts format tag 1 (PCM 8/16/24/32) and tag 3 (float 32) only. Anything else is "Unsupported WAVE format". `emit_tape_wave` returns without a signal. Effects refuse the file. The post-Open envelope is not drawn, so the view stays empty or keeps the previous take while the playhead tracks the new file.
+- Fixed: v1.0.6
