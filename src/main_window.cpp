@@ -266,7 +266,7 @@ void MainWindow::on_save()
     on_save_as();
     return;
   }
-  rec_.save_as(save_path_);
+  rec_.save(save_path_);
 }
 
 void MainWindow::on_save_as()

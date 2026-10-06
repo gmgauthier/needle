@@ -2,7 +2,7 @@
 
 Reviewed 2026-10-01 against the 1.0.0 sources.
 
-`meson test` runs `tests/test_tape.cpp` (`tape`). It checks reverse, volume, echo at a one-frame delay, speed, and a short WAV round trip. It does not lock the 16-bit scale mismatch or the 4 GB header wrap. Ordinary mono 16-bit takes at 44.1 kHz are fine. Reverse keeps channel pairs. Packed 8/16/24/32-bit and float32 PCM decode with the right sign.
+`meson test` runs `tests/test_tape.cpp` (`tape`) and `tests/test_recorder.cpp` (`recorder`). The tape checks cover reverse, volume, echo at a one-frame delay, speed, and a short WAV round trip. They do not lock the 16-bit scale mismatch or the 4 GB header wrap. Ordinary mono 16-bit takes at 44.1 kHz are fine. Reverse keeps channel pairs. Packed 8/16/24/32-bit and float32 PCM decode with the right sign. Opening a FLAC keeps that file's rate and channel count on the working tape. Save leaves the opened file byte for byte alone until the tape changes.
 
 ## Open
 
@@ -99,3 +99,12 @@ None.
 - Trigger: Record anything whose float peak is above 0.4. Stop, which rebuilds the envelope with `pcm_envelope` (absolute peak, no 2.5).
 - Outcome: The live trace pins at full scale while the samples on disk are still at 0.4. After Stop the same audio is drawn at less than half that height. Real clipping and merely loud input look the same during the take.
 - Fixed: v1.0.11
+
+### Opening a compressed sound forces mono 44.1 kHz and Save writes it back
+
+- Severity: data-loss
+- Confidence: high
+- Where: `src/recorder.cpp` `open_file`, `src/main_window.cpp` `on_save`
+- Trigger: Open a FLAC, Ogg, or MP3 that is not mono 44.1 kHz, then Save.
+- Outcome: The working tape is decoded with `rate=44100,channels=1`. Save encodes that tape over the opened file even when nothing was edited. A new recording is still 44.1 kHz mono.
+- Fixed in v1.0.12: The working tape keeps the file's rate and channel count. Save leaves the opened file alone until the tape changes.

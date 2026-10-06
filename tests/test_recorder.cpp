@@ -125,6 +125,43 @@ int main(int argc, char** argv)
     CHECK(!g_file_test((dest + ".part").c_str(), G_FILE_TEST_EXISTS));
     CHECK(rec.open_file(dest));
     CHECK(rec.has_tape());
+
+    // A stereo file that is not 44.1 kHz stays that way, and Save leaves it untouched.
+    needle::TapePcm wide;
+    wide.rate = 22050;
+    wide.channels = 2;
+    wide.samples.resize(2205 * 2);
+    for (size_t i = 0; i < wide.samples.size(); i += 2) {
+      wide.samples[i] = (i % 40 < 20) ? 0.4f : -0.4f;
+      wide.samples[i + 1] = (i % 28 < 14) ? 0.2f : -0.2f;
+    }
+    const std::string src = dir + "/wide.wav";
+    CHECK(needle::save_wav(src, wide, err));
+    CHECK(rec.open_file(src));
+    const std::string flac = dir + "/wide.flac";
+    CHECK(rec.save_as(flac));
+    const std::string flac_bytes = slurp(flac);
+    CHECK(flac_bytes.rfind("fLaC", 0) == 0);
+    CHECK(rec.open_file(flac));
+    CHECK(!rec.dirty());
+    needle::TapePcm opened;
+    CHECK(needle::load_wav(needle::tape_path(), opened, err));
+    CHECK(opened.rate == 22050);
+    CHECK(opened.channels == 2);
+    bool sides_differ = false;
+    for (size_t i = 0; i + 1 < opened.samples.size(); i += 2) {
+      const float d = opened.samples[i] - opened.samples[i + 1];
+      if (d > 0.05f || d < -0.05f)
+        sides_differ = true;
+    }
+    CHECK(sides_differ);
+    CHECK(rec.save(flac));
+    CHECK(slurp(flac) == flac_bytes);
+    CHECK(rec.apply_effect(needle::TapeEffect::reverse));
+    CHECK(rec.dirty());
+    CHECK(rec.save(flac));
+    CHECK(slurp(flac) != flac_bytes);
+    CHECK(slurp(flac).rfind("fLaC", 0) == 0);
   }
 
   return suite_test::done("recorder");
