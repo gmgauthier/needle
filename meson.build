@@ -40,6 +40,7 @@ executable(
   'src/tape_pcm.cpp',
   'src/audio_devices.cpp',
   'src/settings.cpp',
+  'src/save_path.cpp',
   include_directories: inc,
   dependencies: [gtkmm, gst, gst_app],
   install: true,
@@ -85,3 +86,12 @@ recorder_tests = executable(
   dependencies: [gtkmm, gst, gst_app],
 )
 test('recorder', recorder_tests)
+
+save_path_tests = executable(
+  'needle-save-path-tests',
+  'tests/test_save_path.cpp',
+  'src/save_path.cpp',
+  include_directories: inc,
+  dependencies: gtkmm,
+)
+test('save_path', save_path_tests)
