@@ -58,6 +58,7 @@ class Recorder {
 
   bool new_tape();
   bool open_file(const std::string& path);
+  bool save(const std::string& path);
   bool save_as(const std::string& path);
   bool record();
   bool play();

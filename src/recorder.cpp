@@ -333,9 +333,10 @@ bool Recorder::open_file(const std::string& path)
     if (!ok)
       signal_error_.emit("Could not open WAV");
   } else {
+    // A new recording is 44.1 kHz mono. An opened file keeps its own rate and channel count.
     ok = transcode(
-        "filesrc name=in ! decodebin ! audioconvert ! audioresample ! "
-        "audio/x-raw,rate=44100,channels=1 ! wavenc ! filesink name=out",
+        "filesrc name=in ! decodebin ! audioconvert ! "
+        "audio/x-raw,format=S16LE,layout=interleaved ! wavenc ! filesink name=out",
         path, path_, "Could not open sound");
   }
   if (!ok)
@@ -349,6 +350,14 @@ bool Recorder::open_file(const std::string& path)
   signal_position_.emit(position_ns_, duration_ns_);
   emit_tape_wave();
   return true;
+}
+
+bool Recorder::save(const std::string& path)
+{
+  // Save replaces the opened file only after an effect or a take changes the tape.
+  if (!dirty())
+    return has_tape_;
+  return save_as(path);
 }
 
 bool Recorder::save_as(const std::string& path)
