@@ -12,7 +12,7 @@ LCOS itself: [https://github.com/BryanLunduke/LCOS](https://github.com/BryanLund
 
 ## Status
 
-**v1.0.12.** An opened sound keeps its rate and channel count, and Save leaves it alone until the tape changes. **v1.0.11.** Record, stop, and play a WAV; microphone combo; green level trace; seek slider; last folder. Save As / Open WAV, FLAC, Ogg Vorbis, MP3 (tape stays WAV). Effects: volume, speed, echo, reverse. Headless test suite and BUG-BACKLOG.md. See [INSTALL.md](INSTALL.md) and [DEVELOPMENT.md](DEVELOPMENT.md).
+**v1.0.13.** Save As asks before the filter extension replaces a different existing file. **v1.0.12.** An opened sound keeps its rate and channel count, and Save leaves it alone until the tape changes. **v1.0.11.** Record, stop, and play a WAV; microphone combo; green level trace; seek slider; last folder. Save As / Open WAV, FLAC, Ogg Vorbis, MP3 (tape stays WAV). Effects: volume, speed, echo, reverse. Headless test suite and BUG-BACKLOG.md. See [INSTALL.md](INSTALL.md) and [DEVELOPMENT.md](DEVELOPMENT.md).
 
 | Doc | What |
 |---|---|

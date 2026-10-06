@@ -12,7 +12,7 @@ Shares GStreamer with EarBlaster. GNOME Sound Recorder is a phone app — not th
 
 ## Status (2026-10-06)
 
-**v1.0.12.** An opened sound keeps its rate and channel count, and Save leaves it alone until the tape changes. **v1.0.11.** Window plus record / stop / play of a mono 44.1 kHz WAV. Microphone combo lists Pulse (then ALSA) inputs; empty list falls back to Default / Internal microphone. Seek slider and last folder. Save As / Open FLAC, Ogg Vorbis, MP3; tape stays WAV. Effects: volume, speed, echo, reverse. Headless test suite and BUG-BACKLOG.md. Packaged.
+**v1.0.13.** Save As asks before the filter extension replaces a different existing file. **v1.0.12.** An opened sound keeps its rate and channel count, and Save leaves it alone until the tape changes. **v1.0.11.** Window plus record / stop / play of a mono 44.1 kHz WAV. Microphone combo lists Pulse (then ALSA) inputs; empty list falls back to Default / Internal microphone. Seek slider and last folder. Save As / Open FLAC, Ogg Vorbis, MP3; tape stays WAV. Effects: volume, speed, echo, reverse. Headless test suite and BUG-BACKLOG.md. Packaged.
 
 ## 1. Locked decisions
 

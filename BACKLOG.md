@@ -1,6 +1,6 @@
 # Needle backlog
 
-Current release: **v1.0.12**. Last updated: 2026-10-06.
+Current release: **v1.0.13**. Last updated: 2026-10-06.
 
 Windows 95 Sound Recorder. Binary `needle`. Suite catalog: `lcos-projects/PRODUCT-BACKLOG.md`. Plan: [DEVELOPMENT.md](DEVELOPMENT.md). How to land work: [DEVELOPMENT.md](DEVELOPMENT.md#process) — `feature/` / `fix/` branches, PRs to `master`, lint gate, semver on shipped PRs.
 
@@ -23,6 +23,8 @@ None.
 - GNOME Sound Recorder re-theme
 
 ## Shipped
+
+**v1.0.13** — Fix: Save As asks before the filter extension replaces a different existing file.
 
 **v1.0.12** — Fix: opening a compressed sound keeps its rate and channel count, and Save leaves that file alone until the tape changes.
 
