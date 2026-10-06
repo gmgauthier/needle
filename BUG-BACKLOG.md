@@ -2,7 +2,7 @@
 
 Reviewed 2026-10-01 against the 1.0.0 sources.
 
-`meson test` runs `tests/test_tape.cpp` (`tape`) and `tests/test_recorder.cpp` (`recorder`). The tape checks cover reverse, volume, echo at a one-frame delay, speed, and a short WAV round trip. They do not lock the 16-bit scale mismatch or the 4 GB header wrap. Ordinary mono 16-bit takes at 44.1 kHz are fine. Reverse keeps channel pairs. Packed 8/16/24/32-bit and float32 PCM decode with the right sign. Opening a FLAC keeps that file's rate and channel count on the working tape. Save leaves the opened file byte for byte alone until the tape changes.
+`meson test` runs `tests/test_tape.cpp` (`tape`) and `tests/test_recorder.cpp` (`recorder`). The tape checks cover reverse, volume, echo at a one-frame delay, speed, and a short WAV round trip. They do not lock the 16-bit scale mismatch or the 4 GB header wrap. Ordinary mono 16-bit takes at 44.1 kHz are fine. Reverse keeps channel pairs. Packed 8/16/24/32-bit and float32 PCM decode with the right sign. Opening a FLAC keeps that file's rate and channel count on the working tape. Save leaves the opened file byte for byte alone until the tape changes. `tests/test_save_path.cpp` (`save_path`) checks that Save As appends the filter extension, and that a different existing file needs its own overwrite confirmation.
 
 ## Open
 
@@ -108,3 +108,12 @@ None.
 - Trigger: Open a FLAC, Ogg, or MP3 that is not mono 44.1 kHz, then Save.
 - Outcome: The working tape is decoded with `rate=44100,channels=1`. Save encodes that tape over the opened file even when nothing was edited. A new recording is still 44.1 kHz mono.
 - Fixed in v1.0.12: The working tape keeps the file's rate and channel count. Save leaves the opened file alone until the tape changes.
+
+### Save As adds an extension after the overwrite check
+
+- Severity: data-loss
+- Confidence: high
+- Where: `src/main_window.cpp` `on_save_as`
+- Trigger: Save As, type a name with no audio extension, and the selected filter's extension names a different file that already exists.
+- Outcome: The chooser confirms the typed name. The extension is appended afterwards, and that other file is replaced with no second question.
+- Fixed in v1.0.13: When the extension lands on a different existing file, Needle asks before replacing it.

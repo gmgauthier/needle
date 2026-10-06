@@ -3,6 +3,7 @@
 #include "main_window.hpp"
 #include "about_dialog.hpp"
 #include "paths.hpp"
+#include "save_path.hpp"
 
 #include <iostream>
 #include <iomanip>
@@ -40,32 +41,6 @@ void add_sound_filters(Gtk::FileChooserDialog& dlg)
       f->add_pattern("*.oga");
     dlg.add_filter(f);
   }
-}
-
-bool has_audio_ext(const std::string& path)
-{
-  const Glib::ustring low = Glib::ustring(path).lowercase();
-  return low.size() >= 4 &&
-         (low.substr(low.size() - 4) == ".wav" || low.substr(low.size() - 4) == ".ogg" ||
-          low.substr(low.size() - 4) == ".oga" || low.substr(low.size() - 4) == ".mp3" ||
-          (low.size() >= 5 && low.substr(low.size() - 5) == ".flac"));
-}
-
-std::string with_filter_ext(std::string path, const Glib::RefPtr<Gtk::FileFilter>& filter)
-{
-  if (has_audio_ext(path))
-    return path;
-  std::string ext = ".wav";
-  if (filter) {
-    const Glib::ustring n = filter->get_name();
-    if (n.find("FLAC") != Glib::ustring::npos)
-      ext = ".flac";
-    else if (n.find("Ogg") != Glib::ustring::npos)
-      ext = ".ogg";
-    else if (n.find("MP3") != Glib::ustring::npos)
-      ext = ".mp3";
-  }
-  return path + ext;
 }
 
 }  // namespace
@@ -280,7 +255,24 @@ void MainWindow::on_save_as()
   add_sound_filters(dlg);
   if (dlg.run() != Gtk::RESPONSE_ACCEPT)
     return;
-  const std::string path = with_filter_ext(dlg.get_filename(), dlg.get_filter());
+  const std::string chosen = dlg.get_filename();
+  const Glib::ustring filter_name =
+      dlg.get_filter() ? dlg.get_filter()->get_name() : Glib::ustring();
+  const std::string path = with_filter_ext(chosen, filter_name);
+  dlg.hide();
+  if (save_needs_overwrite_prompt(chosen, path)) {
+    // The chooser confirmed the typed name, not the file the extension selects.
+    Gtk::MessageDialog ask(*this,
+                           "A file named \"" + Glib::filename_display_basename(path) +
+                               "\" already exists. Do you want to replace it?",
+                           false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_NONE, true);
+    ask.set_title("Needle");
+    ask.add_button("_Cancel", Gtk::RESPONSE_CANCEL);
+    ask.add_button("_Replace", Gtk::RESPONSE_ACCEPT);
+    ask.set_default_response(Gtk::RESPONSE_CANCEL);
+    if (ask.run() != Gtk::RESPONSE_ACCEPT)
+      return;
+  }
   if (rec_.save_as(path)) {
     save_path_ = path;
     remember_folder(path);
